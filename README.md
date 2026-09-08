@@ -65,4 +65,4 @@ Distributed under the [GPL-3.0](LICENSE) license.
 
 - [kik4311](https://github.com/kik4311)
 
-We in Discord: https://discord.gg/bUy4AwrDQ
+We in Discord: https://discord.gg/uCyCA6FE3N
