@@ -1,5 +1,5 @@
 // EasyVerbs
-// Copyright (C) 2026 kik4311
+// Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
 const translations = {
@@ -307,7 +307,7 @@ const translations = {
         betaDesc: 'EasyVerbs находится в стадии активной разработки. Возможны частые обновления, изменения функционала и временные неполадки. Спасибо за понимание!',
         betaGotIt: 'Понятно',
         footerBeta: 'Бета-версия. Возможны частые обновления.',
-        footerAuthor: 'kik4311',
+        footerAuthor: 'EzyLabsHQ',
         aboutTitle: 'О сайте',
         aboutDesc: 'EasyVerbs — тренажёр английских глаголов. Помогает запоминать формы V1, V2 и V3 через карточки, тренировки и работу над ошибками.',
         surveyTitle: 'Помогите стать лучше',
@@ -886,7 +886,7 @@ const translations = {
         betaDesc: 'EasyVerbs is under active development. Frequent updates, feature changes, and temporary issues may occur. Thank you for your understanding!',
         betaGotIt: 'Got it',
         footerBeta: 'Beta version. Frequent updates may occur.',
-        footerAuthor: 'kik4311',
+        footerAuthor: 'EzyLabsHQ',
         langSpanish: 'Spanish',
         langGerman: 'German',
         langFrench: 'French',
@@ -1260,7 +1260,7 @@ const translations = {
         betaDesc: 'EasyVerbs está en desarrollo activo. Puede haber actualizaciones frecuentes, cambios de funciones y problemas temporales. ¡Gracias por tu comprensión!',
         betaGotIt: 'Entendido',
         footerBeta: 'Versión beta. Puede haber actualizaciones frecuentes.',
-        footerAuthor: 'kik4311',
+        footerAuthor: 'EzyLabsHQ',
         aboutTitle: 'Acerca de',
         aboutDesc: 'EasyVerbs: entrenador de verbos en inglés. Ayuda a memorizar las formas V1, V2 y V3 mediante tarjetas, entrenamientos y repaso de errores.',
         surveyTitle: 'Ayúdanos a mejorar',
@@ -1725,7 +1725,7 @@ const translations = {
         betaDesc: 'EasyVerbs befindet sich in aktiver Entwicklung. Häufige Updates, Funktionsänderungen und vorübergehende Probleme sind möglich. Danke für dein Verständnis!',
         betaGotIt: 'Verstanden',
         footerBeta: 'Beta-Version. Häufige Updates möglich.',
-        footerAuthor: 'kik4311',
+        footerAuthor: 'EzyLabsHQ',
         aboutTitle: 'Über',
         aboutDesc: 'EasyVerbs — Trainer für englische Verben. Hilft, die Formen V1, V2 und V3 durch Karteikarten, Übungen und Fehlerwiederholung zu lernen.',
         surveyTitle: 'Hilf uns, besser zu werden',
@@ -2190,7 +2190,7 @@ const translations = {
         betaDesc: 'EasyVerbs est en développement actif. Des mises à jour fréquentes, des changements de fonctionnalités et des problèmes temporaires sont possibles. Merci de votre compréhension !',
         betaGotIt: 'Compris',
         footerBeta: 'Version bêta. Mises à jour fréquentes possibles.',
-        footerAuthor: 'kik4311',
+        footerAuthor: 'EzyLabsHQ',
         aboutTitle: 'À propos',
         aboutDesc: 'EasyVerbs — entraîneur de verbes anglais. Aide à mémoriser les formes V1, V2 et V3 via des cartes, des entraînements et la révision des erreurs.',
         surveyTitle: 'Aidez-nous à nous améliorer',
@@ -2655,7 +2655,7 @@ const translations = {
         betaDesc: 'EasyVerbs está em desenvolvimento ativo. Atualizações frequentes, mudanças de recursos e problemas temporários são possíveis. Obrigado pela compreensão!',
         betaGotIt: 'Entendi',
         footerBeta: 'Versão beta. Atualizações frequentes possíveis.',
-        footerAuthor: 'kik4311',
+        footerAuthor: 'EzyLabsHQ',
         aboutTitle: 'Sobre',
         aboutDesc: 'EasyVerbs — treinador de verbos em inglês. Ajuda a memorizar as formas V1, V2 e V3 com cartões, treinos e revisão de erros.',
         surveyTitle: 'Ajude-nos a melhorar',
