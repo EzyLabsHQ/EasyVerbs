@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-// Облегчённая версия: без внешних библиотек, шрифтов и тяжёлых эффектов.
+// Lite версия: без внешних библиотек, шрифтов и тяжёлых эффектов.
 // Настройки и статистика хранятся в тех же ключах localStorage, что и у полной версии.
 
 const SETTINGS_KEY = 'verbTrainerSettings';
@@ -834,7 +834,9 @@ function save() {
     settings.soundEnabled = document.getElementById('set-sound').checked;
     settings.darkMode = document.getElementById('set-dark').checked;
     settings.compact = document.getElementById('set-compact').checked;
-    settings.powerMode = 'lite';
+    // Явный выбор полной версии не перебиваем: переключаем на Lite только если
+    // пользователь сам этого не отменял.
+    if (settings.powerMode !== 'full') settings.powerMode = 'lite';
     saveSettingsLite();
     applyTheme();
     renderGroupChips();
@@ -892,7 +894,7 @@ window.addEventListener('DOMContentLoaded', function() {
         const desc = document.getElementById('lite-power-desc');
         if (desc) desc.textContent = getPowerLevelText(report) + ' · ' + report.score + '/100';
     });
-    // просим сервис-воркера сохранить файлы lite-версии для работы офлайн
+    // просим сервис-воркера сохранить файлы Lite-версии для работы офлайн
     if (navigator.serviceWorker && navigator.serviceWorker.controller) {
         try {
             navigator.serviceWorker.controller.postMessage({ type: 'CACHE_LITE' });

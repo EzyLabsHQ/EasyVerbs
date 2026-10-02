@@ -2751,15 +2751,7 @@ function dismissWelcome() {
     settings.welcomeShown = true;
     localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
     document.getElementById('welcome-modal').classList.remove('open');
-    if ((settings.powerMode || 'auto') === 'lite') {
-        goToLite();
-        return;
-    }
-    if (powerReport) {
-        offerLiteIfNeeded(powerReport);
-    } else {
-        runPowerDetection(true).then(offerLiteIfNeeded);
-    }
+    maybeOfferLite();
 }
 
 function showBetaInfo() {
@@ -2811,6 +2803,23 @@ function declineLiteForever() {
     localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
     closePowerModal();
     showToast(__('powerModeFullSaved'), 'success');
+}
+
+function keepFullVersion() {
+    settings.powerMode = 'full';
+    rememberPowerPrompt();
+    localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
+    closePowerModal();
+}
+
+// Проверка и предложение Lite-версии: только в режиме 'auto' и не чаще раза в 14 дней.
+// Никаких автопереходов — полная версия всегда остаётся доступной по прямой ссылке.
+function maybeOfferLite() {
+    if (powerReport) {
+        offerLiteIfNeeded(powerReport);
+    } else {
+        runPowerDetection(true).then(offerLiteIfNeeded);
+    }
 }
 
 function offerLiteIfNeeded(report) {
@@ -4149,16 +4158,7 @@ window.onload = () => {
     if (!settings.welcomeShown) {
         setTimeout(showWelcome, 400);
     }
-    setTimeout(function() {
-        runPowerDetection(true).then(function(report) {
-            if ((settings.powerMode || 'auto') === 'lite' &&
-                !document.getElementById('welcome-modal').classList.contains('open')) {
-                goToLite();
-                return;
-            }
-            offerLiteIfNeeded(report);
-        });
-    }, 600);
+    setTimeout(maybeOfferLite, 600);
     if (window.matchMedia) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function(e) {
             if (settings.darkMode === undefined || settings.darkMode === null) {

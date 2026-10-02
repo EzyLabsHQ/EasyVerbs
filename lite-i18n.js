@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-// Переводы облегчённой версии (только используемые ключи, все 6 языков)
+// Переводы Lite версии (только используемые ключи, все 6 языков)
 
 const liteTranslations = {
     ru: {
@@ -22,7 +22,7 @@ const liteTranslations = {
         liteNoHeavy: 'Без анимаций, эффектов стекла и внешних библиотек — страница открывается мгновенно.',
         liteOpenFull: 'Открыть полную версию',
         liteProgressShared: 'Прогресс общий с полной версией: настройки, избранное и статистика сохраняются вместе.',
-        liteTag: 'облегчённая версия',
+        liteTag: 'Lite версия',
         liteWrongCount: 'Ошибок',
         misEmpty: 'Ошибок нет! Вы отлично справляетесь.',
         misProgressWordsHint: 'Глаголы, в которых были ошибки. Верный ответ уменьшает счётчик.',
@@ -212,7 +212,7 @@ const liteTranslations = {
         liteNoHeavy: 'Sin animaciones, cristal ni librerías externas — la página se abre al instante.',
         liteOpenFull: 'Abrir la versión completa',
         liteProgressShared: 'El progreso se comparte con la versión completa: ajustes, favoritos y estadísticas se guardan juntos.',
-        liteTag: 'versión ligera',
+        liteTag: 'versión Lite',
         liteWrongCount: 'Fallos',
         misEmpty: '¡Sin errores! Lo estás haciendo genial.',
         misProgressWordsHint: 'Verbos en los que fallaste. Una respuesta correcta baja el contador.',
@@ -307,7 +307,7 @@ const liteTranslations = {
         liteNoHeavy: 'Ohne Animationen, Glaseffekte und externe Bibliotheken — die Seite öffnet sofort.',
         liteOpenFull: 'Volle Version öffnen',
         liteProgressShared: 'Der Fortschritt wird mit der vollen Version geteilt: Einstellungen, Favoriten und Statistik liegen gemeinsam ab.',
-        liteTag: 'schlanke Version',
+        liteTag: 'Lite-Version',
         liteWrongCount: 'Fehler',
         misEmpty: 'Keine Fehler! Du machst das großartig.',
         misProgressWordsHint: 'Verben mit Fehlern. Eine richtige Antwort verringert den Zähler.',
@@ -402,7 +402,7 @@ const liteTranslations = {
         liteNoHeavy: 'Sans animations, effets de verre ni bibliothèques externes — la page s’ouvre instantanément.',
         liteOpenFull: 'Ouvrir la version complète',
         liteProgressShared: 'La progression est partagée avec la version complète : réglages, favoris et statistiques sont enregistrés ensemble.',
-        liteTag: 'version allégée',
+        liteTag: 'version Lite',
         liteWrongCount: 'Erreurs',
         misEmpty: 'Aucune erreur ! Vous vous débrouillez très bien.',
         misProgressWordsHint: 'Verbes sur lesquels vous vous êtes trompé. Une bonne réponse diminue le compteur.',
@@ -497,7 +497,7 @@ const liteTranslations = {
         liteNoHeavy: 'Sem animações, efeitos de vidro ou bibliotecas externas — a página abre de imediato.',
         liteOpenFull: 'Abrir a versão completa',
         liteProgressShared: 'O progresso é partilhado com a versão completa: definições, favoritos e estatísticas ficam guardados em conjunto.',
-        liteTag: 'versão leve',
+        liteTag: 'versão Lite',
         liteWrongCount: 'Erros',
         misEmpty: 'Sem erros! Você está indo muito bem.',
         misProgressWordsHint: 'Verbos em que erraste. Uma resposta certa diminui o contador.',

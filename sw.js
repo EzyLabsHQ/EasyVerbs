@@ -55,7 +55,7 @@ self.addEventListener('fetch', function(event) {
       return caches.match(event.request).then(function(cached) {
         if (cached) return cached;
         if (event.request.mode === 'navigate') {
-          // офлайн: отдаём lite-версию, если полная ещё не закэширована
+          // офлайн: отдаём Lite-версию, если полная ещё не закэширована
           return caches.match('index.html').then(function(index) {
             return index || caches.match('lite.html');
           });
@@ -66,7 +66,7 @@ self.addEventListener('fetch', function(event) {
   );
 });
 
-// Облегчённая версия подключается отдельно и кэшируется по требованию
+// Lite версия подключается отдельно и кэшируется по требованию
 self.addEventListener('message', function(event) {
   if (event.data && event.data.type === 'CACHE_LITE') {
     event.waitUntil(

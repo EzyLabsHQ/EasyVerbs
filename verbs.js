@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-// Общие данные глаголов и переводы (используются полной и облегчённой версиями)
+// Общие данные глаголов и переводы (используются полной и Lite-версией)
 const verbsData = [
     { v1: "be", v2: "was/were", v3: "been", translation: "быть", complexity: 1 },
     { v1: "bear", v2: "bore", v3: "born(e)", translation: "терпеть, выдерживать", complexity: 3 },

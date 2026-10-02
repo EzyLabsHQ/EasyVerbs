@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-// Определение мощности устройства (общий модуль для полной и облегчённой версий)
+// Определение мощности устройства (общий модуль для полной и Lite версий)
 
 const POWER_THRESHOLDS = {
     high: 65,
