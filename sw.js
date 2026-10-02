@@ -2,16 +2,25 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-const CACHE = 'easyverbs-v0.6.5';
+const CACHE = 'easyverbs-v0.6.6';
 const URLS = [
   '/',
   'index.html',
   'style.css',
   'script.js',
+  'verbs.js',
+  'power.js',
   'translations.js',
   'manifest.json',
   'logo.svg',
   'logo-dark.svg'
+];
+
+const LITE_URLS = [
+  'lite.html',
+  'lite.css',
+  'lite.js',
+  'lite-i18n.js'
 ];
 
 self.addEventListener('install', function(event) {
@@ -46,10 +55,24 @@ self.addEventListener('fetch', function(event) {
       return caches.match(event.request).then(function(cached) {
         if (cached) return cached;
         if (event.request.mode === 'navigate') {
-          return caches.match('index.html');
+          // офлайн: отдаём lite-версию, если полная ещё не закэширована
+          return caches.match('index.html').then(function(index) {
+            return index || caches.match('lite.html');
+          });
         }
         return new Response('', { status: 503, statusText: 'Offline' });
       });
     })
   );
+});
+
+// Облегчённая версия подключается отдельно и кэшируется по требованию
+self.addEventListener('message', function(event) {
+  if (event.data && event.data.type === 'CACHE_LITE') {
+    event.waitUntil(
+      caches.open(CACHE).then(function(cache) {
+        return cache.addAll(LITE_URLS).catch(function() {});
+      })
+    );
+  }
 });

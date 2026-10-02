@@ -25,7 +25,9 @@
     <link rel="apple-touch-icon" href="logo.svg">
     <link rel="apple-touch-icon" media="(prefers-color-scheme: dark)" href="logo-dark.svg">
     <link rel="stylesheet" href="style.css">
+    <script src="verbs.js"></script>
     <script src="translations.js"></script>
+    <script src="power.js"></script>
     <script src="script.js"></script>
 </head>
 <body class="text-slate-800 min-h-screen flex flex-col">
@@ -1228,6 +1230,23 @@
 
                         <div class="space-y-6">
                             <div class="relative pl-12">
+                                <div class="absolute left-[11px] top-1 w-[17px] h-[17px] rounded-full bg-indigo-400 border-2 border-white shadow"></div>
+                                <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-bold text-indigo-700 bg-indigo-200 px-2 py-0.5 rounded-full" data-i18n="updDate9">2 октября 2026</span>
+                                        <span class="text-xs text-indigo-500 font-semibold" data-i18n="updTag9">Облегчённая версия</span>
+                                    </div>
+                                    <div class="font-semibold text-indigo-900 text-sm mb-2" data-i18n="updHeading9">Определение мощности устройства и lite-режим</div>
+                                    <ul class="text-xs text-indigo-800 space-y-1">
+                                        <li><i class="fas fa-microchip text-indigo-500 mr-2 w-4"></i><span data-i18n="upd9Item1">Автоопределение мощности: ядра, ОЗУ, графика, сеть, батарея и реальный FPS</span></li>
+                                        <li><i class="fas fa-bolt text-indigo-500 mr-2 w-4"></i><span data-i18n="upd9Item2">Предложение облегчённой версии на слабых устройствах и медленной сети</span></li>
+                                        <li><i class="fas fa-feather text-indigo-500 mr-2 w-4"></i><span data-i18n="upd9Item3">Новая lite-версия: словарь, формы, карточки и ошибки без внешних библиотек</span></li>
+                                        <li><i class="fas fa-share-alt text-indigo-500 mr-2 w-4"></i><span data-i18n="upd9Item4">Прогресс, настройки и избранное общие для полной и облегчённой версий</span></li>
+                                        <li><i class="fas fa-database text-indigo-500 mr-2 w-4"></i><span data-i18n="upd9Item5">Данные глаголов вынесены в общий файл verbs.js</span></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="relative pl-12">
                                 <div class="absolute left-[11px] top-1 w-[17px] h-[17px] rounded-full bg-emerald-400 border-2 border-white shadow"></div>
                                 <div class="bg-emerald-50 rounded-xl p-4 border border-emerald-200">
                                     <div class="flex items-center gap-2 mb-1">
@@ -1521,8 +1540,20 @@
                             </button>
                         </div>
 
+                        <div class="bg-indigo-50 rounded-xl p-4">
+                            <div class="flex items-center gap-2 mb-1">
+                                <i class="fas fa-bolt text-indigo-500"></i>
+                                <span class="text-sm font-bold text-indigo-700" data-i18n="powerLiteTitle">Облегчённая версия</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mb-3" data-i18n="powerLiteAboutDesc">Для слабых устройств и медленной сети: без анимаций, стекла и внешних библиотек. Прогресс общий с полной версией.</p>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="lite.html" class="btn-sm btn-primary"><i class="fas fa-bolt mr-1"></i> <span data-i18n="powerLiteOpen">Открыть облегчённую</span></a>
+                                <button onclick="openPowerReport()" class="btn-sm btn-outline"><i class="fas fa-microchip mr-1"></i> <span data-i18n="powerCheckBtn">Проверить мощность</span></button>
+                            </div>
+                        </div>
+
                         <div class="text-xs text-slate-400 text-center pt-2" data-i18n="aboutTech">Сделано на HTML, CSS и чистом JS</div>
-                        <div id="app-version" class="text-xs text-slate-300 text-center font-mono">v0.6.5-beta</div>
+                        <div id="app-version" class="text-xs text-slate-300 text-center font-mono">v0.6.6-beta</div>
                     </div>
                 </div>
             </div>
@@ -1737,6 +1768,37 @@
                                 <input type="checkbox" id="setting-align-right" onchange="saveSettings()">
                                 <span class="toggle-slider"></span>
                             </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-card">
+                    <div class="settings-card-header"><i class="fas fa-gauge-high"></i> <span data-i18n="setPowerSection">Производительность</span></div>
+                    <div class="settings-card-body">
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label" data-i18n="powerDevicePower">Мощность устройства</div>
+                                <div class="setting-desc" id="power-status-desc" data-i18n="setPowerCheckDesc">Определить ядра, память, графику и сеть</div>
+                            </div>
+                            <button onclick="openPowerReport()" class="btn-sm btn-primary"><i class="fas fa-search mr-1"></i> <span data-i18n="setPowerCheck">Проверить</span></button>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label" data-i18n="setPowerMode">Режим сайта</div>
+                                <div class="setting-desc" data-i18n="setPowerModeDesc">Авто — предлагать облегчённую версию на слабых устройствах</div>
+                            </div>
+                            <select id="setting-power-mode" onchange="saveSettings()">
+                                <option value="auto" data-i18n="setPowerAuto">Авто</option>
+                                <option value="full" data-i18n="setPowerFull">Полная</option>
+                                <option value="lite" data-i18n="setPowerLite">Облегчённая</option>
+                            </select>
+                        </div>
+                        <div class="setting-row">
+                            <div>
+                                <div class="setting-label" data-i18n="setLiteVersion">Облегчённая версия</div>
+                                <div class="setting-desc" data-i18n="setLiteVersionDesc">Быстрая версия без анимаций и внешних библиотек</div>
+                            </div>
+                            <a href="lite.html" class="btn-sm btn-outline" id="btn-open-lite"><i class="fas fa-bolt mr-1"></i> <span data-i18n="setLiteOpen">Открыть</span></a>
                         </div>
                     </div>
                 </div>
@@ -1996,6 +2058,30 @@
         </div>
     </div>
 
+    <!-- Модальное окно мощности устройства / облегчённой версии -->
+    <div id="power-modal" class="modal-overlay" onclick="if(event.target===this)closePowerModal()">
+        <div class="modal-content settings-modal-content" style="max-width: 420px;">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-600 shadow-sm">
+                        <i class="fas fa-microchip text-sm"></i>
+                    </div>
+                    <h3 class="text-xl font-bold" data-i18n="powerTitle">Мощность устройства</h3>
+                </div>
+                <button onclick="closePowerModal()" class="w-7 h-7 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors text-lg leading-none">&times;</button>
+            </div>
+            <p class="text-slate-500 text-sm leading-relaxed mb-4" data-i18n="powerDesc">Полная версия использует анимации, эффекты стекла и внешние библиотеки. Облегчённая версия грузится мгновенно и почти не нагружает процессор.</p>
+            <div id="power-report" class="mb-4"></div>
+            <div class="flex gap-2">
+                <button onclick="goToLite()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-4 rounded-xl transition-colors text-sm">
+                    <i class="fas fa-bolt mr-1"></i> <span data-i18n="powerEnableLite">Включить облегчённую</span>
+                </button>
+                <button onclick="closePowerModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2.5 px-4 rounded-xl transition-colors text-sm" data-i18n="powerKeepFull">Оставить полную</button>
+            </div>
+            <button onclick="declineLiteForever()" class="w-full text-xs text-slate-400 hover:text-slate-600 transition-colors mt-3" data-i18n="powerNeverAsk">Больше не предлагать</button>
+        </div>
+    </div>
+
     <div id="confirm-modal" class="modal-overlay" onclick="if(event.target===this)confirmDialogCancel()">
         <div class="modal-content" style="max-width:380px">
             <div class="text-center">
@@ -2017,6 +2103,8 @@
             <p class="text-xs text-slate-400" data-i18n="footerBeta">Бета-версия. Возможны частые обновления.</p>
             <span class="text-xs text-slate-300 hidden sm:inline">·</span>
             <p class="text-xs text-slate-400" data-i18n="footerAuthor">© EzyLabsHQ</p>
+            <span class="text-xs text-slate-300 hidden sm:inline">·</span>
+            <a href="lite.html" class="text-xs text-slate-400 hover:text-indigo-500 transition-colors" data-i18n="footerLite">Облегчённая версия</a>
         </div>
     </footer>
 

@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<!--
+    EasyVerbs — lite version
+    Copyright (C) 2026 EzyLabsHQ
+    This program is free software under GPL v3 - see LICENSE
+-->
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<title>EasyVerbs — облегчённая версия</title>
+<link rel="icon" type="image/svg+xml" href="logo.svg">
+<link rel="stylesheet" href="lite.css">
+</head>
+<body>
+
+<header>
+    <div class="top-row">
+        <span class="brand" aria-hidden="true">EV</span>
+        <span class="brand-name">EasyVerbs <em data-i18n="liteTag">облегчённая версия</em></span>
+        <span class="spacer"></span>
+        <button class="icon-btn" onclick="toggleTheme()" title="Theme" data-i18n-title="setDarkMode" aria-label="Theme">◐</button>
+        <button class="icon-btn" onclick="openSettings()" title="Settings" data-i18n-title="navSettings" aria-label="Settings">⚙</button>
+    </div>
+    <nav class="tabs" role="tablist">
+        <button class="tab active" id="tab-trainer" onclick="switchTab('trainer')" role="tab" aria-selected="true" data-i18n="navTrainer">Формы</button>
+        <button class="tab" id="tab-dictionary" onclick="switchTab('dictionary')" role="tab" aria-selected="false" data-i18n="navDictionary">Словарь</button>
+        <button class="tab" id="tab-flashcards" onclick="switchTab('flashcards')" role="tab" aria-selected="false" data-i18n="navFlashcards">Карточки</button>
+        <button class="tab" id="tab-mistakes" onclick="switchTab('mistakes')" role="tab" aria-selected="false" data-i18n="navMistakes">Ошибки</button>
+    </nav>
+    <div class="stats" id="lite-stats"></div>
+</header>
+
+<main>
+
+    <!-- ============ ФОРМЫ ============ -->
+    <section id="view-trainer">
+        <div class="card center" id="tr-start">
+            <h2 data-i18n="trTitle">Проверка знаний</h2>
+            <p class="sub" data-i18n="trDesc">Вам покажут глагол — напишите формы Past Simple (V2) и Past Participle (V3).</p>
+            <div class="chips" style="justify-content:center">
+                <button class="chip active" id="mode-normal" onclick="setMode('normal')" data-i18n="trModeNormal">V1 → V2/V3</button>
+                <button class="chip" id="mode-reverse" onclick="setMode('reverse')" data-i18n="trModeRevV1">Перевод → V1</button>
+            </div>
+            <div class="chips" id="tr-groups" style="justify-content:center"></div>
+            <button class="btn btn-primary" onclick="startSession()" data-i18n="trStart">Начать тренировку</button>
+        </div>
+
+        <div class="card hidden" id="tr-active">
+            <div class="progress"><i id="tr-bar"></i></div>
+            <div class="score-row">
+                <span id="tr-progress">1/10</span>
+                <span>
+                    <b class="ok-txt" id="tr-score">0</b> /
+                    <b class="no-txt" id="tr-mistakes">0</b>
+                    <span class="mono" id="tr-timer"></span>
+                </span>
+            </div>
+            <div class="center" style="margin-bottom:.9rem">
+                <div class="q-prompt" id="tr-label">V1 (Infinitive)</div>
+                <div class="q-word" id="tr-word">go</div>
+                <div class="q-trans hidden" id="tr-translation"></div>
+            </div>
+            <div id="tr-inputs"></div>
+            <div class="feedback hidden" id="tr-feedback"></div>
+            <div class="row">
+                <button class="btn btn-primary" id="tr-check" onclick="checkAnswer()" data-i18n="trCheck">Проверить</button>
+                <button class="btn btn-ok hidden" id="tr-next" onclick="nextQuestion()" data-i18n="trNext">Далее</button>
+            </div>
+        </div>
+
+        <div class="card center hidden" id="tr-results">
+            <h2 data-i18n="trResultTitle">Результаты</h2>
+            <div style="font-size:2.4rem;font-weight:800;color:var(--p);margin:.5rem 0" id="tr-final">0/10</div>
+            <p class="sub" id="tr-result-desc"></p>
+            <div class="row">
+                <button class="btn btn-primary" onclick="startSession()" data-i18n="trAgain">Ещё раз</button>
+                <button class="btn btn-ghost" onclick="startSession(true)" id="tr-review-mistakes" data-i18n="mistakeRepeat">Повторить ошибки</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ СЛОВАРЬ ============ -->
+    <section id="view-dictionary" class="hidden">
+        <div class="toolbar">
+            <input type="text" id="dict-search" oninput="renderDictionary()" data-i18n-placeholder="dictSearch" placeholder="Поиск..." aria-label="Поиск">
+        </div>
+        <div class="chips" id="dict-groups"></div>
+        <div class="tablewrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th data-i18n="dictV1">V1</th>
+                        <th data-i18n="dictV2">V2</th>
+                        <th data-i18n="dictV3">V3</th>
+                        <th data-i18n="dictTranslation">Перевод</th>
+                        <th data-i18n="dictGroup">Группа</th>
+                    </tr>
+                </thead>
+                <tbody id="dict-body"></tbody>
+            </table>
+        </div>
+        <p class="note" id="dict-count"></p>
+    </section>
+
+    <!-- ============ КАРТОЧКИ ============ -->
+    <section id="view-flashcards" class="hidden">
+        <div class="chips" id="fc-groups" style="justify-content:center"></div>
+        <div class="flashcard" id="flashcard" onclick="flipCard()" role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();flipCard();}">
+            <div class="side front">
+                <div class="q-prompt" data-i18n="dictV1">V1 (Infinitive)</div>
+                <div class="big" id="fc-v1">go</div>
+                <button class="speak" id="fc-speak" onclick="event.stopPropagation();speakNow(document.getElementById('fc-v1').textContent,'en-US')" aria-label="Speak">♪</button>
+                <p class="note" data-i18n="flashcardFlipHint">Нажмите, чтобы перевернуть</p>
+            </div>
+            <div class="side back">
+                <div class="forms">
+                    <div><span>V2</span><span id="fc-v2">went</span></div>
+                    <div><span>V3</span><span id="fc-v3">gone</span></div>
+                </div>
+                <div class="trans" id="fc-trans"></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top:.75rem;align-items:center">
+            <button class="nav-btn" onclick="prevCard()" aria-label="Prev">‹</button>
+            <div class="center mono" style="flex:2" id="fc-counter">1/1</div>
+            <button class="nav-btn" onclick="nextCard()" aria-label="Next">›</button>
+        </div>
+    </section>
+
+    <!-- ============ ОШИБКИ ============ -->
+    <section id="view-mistakes" class="hidden">
+        <div class="card">
+            <h2 data-i18n="misTitle">Мои ошибки</h2>
+            <p class="sub" data-i18n="misProgressWordsHint">Глаголы, в которых были ошибки. Верный ответ уменьшает счётчик.</p>
+            <div id="mist-list"></div>
+            <div class="row" style="margin-top:.75rem">
+                <button class="btn btn-primary" id="mist-start" onclick="startSession(true)" data-i18n="mistakeRepeat">Повторить ошибки</button>
+                <button class="btn btn-ghost" onclick="clearAllMistakes()" data-i18n="mistClear">Очистить</button>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- ============ НАСТРОЙКИ ============ -->
+<div class="overlay hidden" id="set-overlay" onclick="if(event.target===this)closeSettings()">
+    <div class="dialog" role="dialog" aria-modal="true">
+        <h3 data-i18n="navSettings">Настройки</h3>
+
+        <div class="set-row">
+            <div>
+                <div data-i18n="setQuestionCount">Вопросов за раз</div>
+                <div class="d" data-i18n="setQuestionCountDesc">Сколько вопросов в одной сессии</div>
+            </div>
+            <select id="set-count" onchange="save()">
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="20">20</option>
+                <option value="50">50</option>
+                <option value="all">∞</option>
+            </select>
+        </div>
+
+        <div class="set-row">
+            <div>
+                <div data-i18n="setComplexity">Сложность</div>
+                <div class="d" data-i18n="setComplexityDesc">Фильтр по сложности</div>
+            </div>
+            <select id="set-complexity" onchange="save()">
+                <option value="all" data-i18n="setAllLevels">Все</option>
+                <option value="1" data-i18n="setLevel1">1 — базовые</option>
+                <option value="2" data-i18n="setLevel2">2 — средние</option>
+                <option value="3" data-i18n="setLevel3">3 — сложные</option>
+            </select>
+        </div>
+
+        <div class="set-row">
+            <div>
+                <div data-i18n="setVerbGroup">Группа</div>
+                <div class="d" data-i18n="setVerbGroupDesc">AAA / ABB / ABA / ABC</div>
+            </div>
+            <select id="set-group" onchange="save()">
+                <option value="all" data-i18n="dictGroupAll">Все</option>
+                <option value="1">AAA</option>
+                <option value="2">ABB</option>
+                <option value="3">ABA</option>
+                <option value="4">ABC</option>
+            </select>
+        </div>
+
+        <div class="set-row">
+            <div>
+                <div data-i18n="setLang">Язык интерфейса</div>
+                <div class="d" data-i18n="setLangDesc">Русский, English, Español, Deutsch, Français, Português</div>
+            </div>
+            <select id="set-lang" onchange="changeLang(this.value)">
+                <option value="ru">Русский</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="de">Deutsch</option>
+                <option value="fr">Français</option>
+                <option value="pt">Português</option>
+            </select>
+        </div>
+
+        <div class="set-row">
+            <div><div data-i18n="setShowTranslation">Показывать перевод</div></div>
+            <label class="switch"><input type="checkbox" id="set-translation" onchange="save()"><i></i></label>
+        </div>
+
+        <div class="set-row">
+            <div><div data-i18n="setAutoAdvance">Автопереход</div></div>
+            <label class="switch"><input type="checkbox" id="set-auto" onchange="save()"><i></i></label>
+        </div>
+
+        <div class="set-row">
+            <div><div data-i18n="setTimer">Таймер сессии</div></div>
+            <label class="switch"><input type="checkbox" id="set-timer" onchange="save()"><i></i></label>
+        </div>
+
+        <div class="set-row">
+            <div><div data-i18n="setSound">Звук</div></div>
+            <label class="switch"><input type="checkbox" id="set-sound" onchange="save()"><i></i></label>
+        </div>
+
+        <div class="set-row">
+            <div><div data-i18n="setDarkMode">Тёмная тема</div></div>
+            <label class="switch"><input type="checkbox" id="set-dark" onchange="save()"><i></i></label>
+        </div>
+
+        <div class="set-row">
+            <div><div data-i18n="setCompact">Компактный режим</div></div>
+            <label class="switch"><input type="checkbox" id="set-compact" onchange="save()"><i></i></label>
+        </div>
+
+        <div class="set-row">
+            <div>
+                <div data-i18n="powerDevicePower">Мощность устройства</div>
+                <div class="d" id="lite-power-desc"></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="showPowerReport()" data-i18n="setPowerCheck">Проверить</button>
+        </div>
+        <div id="lite-power-report"></div>
+
+        <p class="note" data-i18n="liteProgressShared">Прогресс общий с полной версией: настройки, избранное и статистика сохраняются вместе.</p>
+        <p class="note" data-i18n="liteNoHeavy">Без анимаций, эффектов стекла и внешних библиотек — страница открывается мгновенно.</p>
+
+        <div class="row" style="margin-top:.75rem">
+            <a class="btn btn-primary" href="index.html" data-i18n="liteOpenFull">Открыть полную версию</a>
+            <button class="btn btn-ghost" onclick="resetProgress()" data-i18n="setResetBtn">Сбросить прогресс</button>
+        </div>
+        <div class="row" style="margin-top:.5rem">
+            <button class="btn btn-ghost" onclick="closeSettings()" data-i18n="confirmOk">Готово</button>
+        </div>
+    </div>
+</div>
+
+<footer>
+    <div><span data-i18n="liteTag">облегчённая версия</span> · © EzyLabsHQ</div>
+    <div><a class="linkish" href="index.html" data-i18n="liteOpenFull">Открыть полную версию</a></div>
+</footer>
+
+<script src="verbs.js"></script>
+<script src="power.js"></script>
+<script src="lite-i18n.js"></script>
+<script src="lite.js"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@
 
 Vanilla JS · PWA · No frameworks · No ads
 
-[![Version](https://img.shields.io/badge/Version-v0.6.5--beta-blueviolet?style=for-the-badge&logo=semver)](https://github.com/kik4311/EasyVerbs/releases)
+[![Version](https://img.shields.io/badge/Version-v0.6.6--beta-blueviolet?style=for-the-badge&logo=semver)](https://github.com/kik4311/EasyVerbs/releases)
 [![License](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge&logo=gnu)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-Yes-ff69b4?style=for-the-badge&logo=pwa)](manifest.json)
 [![Status](https://img.shields.io/badge/Status-Ready-28a745?style=for-the-badge&logo=checkmarx)](https://kik4311.github.io/EasyVerbs/)
@@ -42,6 +42,31 @@ Vanilla JS · PWA · No frameworks · No ads
 | **Export statistics** | JSON and CSV |
 | **PWA** | Works offline, installable on your phone |
 | **i18n** | 6 interface languages |
+| **Device power check** | Auto-detects cores, RAM, GPU, network, battery and FPS, then suggests the lite version |
+| **Lite version** | `lite.html` — no external libraries, no animations, opens instantly, shares progress with the full version |
+
+## Lite version
+
+`lite.html` is a stripped-down build for slow devices and slow networks. It has no CDN
+dependencies (no Tailwind, Font Awesome or Google Fonts), no animations and no glass effects,
+so it loads instantly and keeps CPU load low.
+
+| | Full | Lite |
+|---|---|---|
+| Files | `index.html` + Tailwind/Font Awesome/Google Fonts | `lite.html` + own CSS |
+| Size | ~180 kB translations, heavy visuals | 28 kB translations, no external requests |
+| Trainer / Dictionary / Flashcards / Mistakes | yes | yes |
+| Letters / Prepositions / Sprint / Exam / Stats / Achievements | yes | — |
+
+Progress is **shared**: both versions read and write the same `verbTrainerSettings` and
+`verbTrainerErrors` localStorage keys, so favorites, statistics and mistakes are the same
+wherever you train.
+
+Switch manually at any time: *Настройки → Производительность* in the full version, or the
+footer link in the lite version. On first visit the app measures the device (cores, RAM,
+GPU, network, battery, reduced motion and measured FPS), scores it from 0 to 100 and offers
+the lite version once if the score is below 65 — then never again for 14 days. Choose
+*Больше не предлагать* to disable the check permanently.
 
 ## Stack
 
