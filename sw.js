@@ -4,7 +4,7 @@
 
 const CACHE = 'easyverbs-v0.6.6';
 const URLS = [
-  '/',
+  './',
   'index.html',
   'style.css',
   'script.js',
@@ -13,15 +13,14 @@ const URLS = [
   'translations.js',
   'manifest.json',
   'logo.svg',
-  'logo-dark.svg'
-];
-
-const LITE_URLS = [
+  'logo-dark.svg',
   'lite.html',
   'lite.css',
   'lite.js',
   'lite-i18n.js'
 ];
+
+const LITE_URLS = ['lite.html', 'lite.css', 'lite.js', 'lite-i18n.js'];
 
 self.addEventListener('install', function(event) {
   event.waitUntil(

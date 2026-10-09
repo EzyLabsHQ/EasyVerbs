@@ -235,7 +235,7 @@ function getFilteredVerbs(mistakesOnly) {
         const g = parseInt(settings.verbGroup, 10);
         if (!isNaN(g)) list = list.filter(function(v) { return classifyVerb(v) === g; });
     }
-    if (settings.favOnly && (settings.favorites || []).length) {
+    if (settings.favOnly) {
         list = list.filter(function(v) { return settings.favorites.indexOf(v.v1) > -1; });
     }
     return list;
@@ -370,12 +370,10 @@ function startSession(onlyMistakes) {
     mistakesOnly = !!onlyMistakes;
     let pool = getFilteredVerbs(mistakesOnly);
     if (pool.length === 0) {
-        if (mistakesOnly) {
-            switchTab('trainer');
-            showStart();
-            return;
-        }
-        pool = getFullVerbList();
+        switchTab('trainer');
+        showStart();
+        window.alert(mistakesOnly ? __('misEmpty') : (settings.favOnly ? __('emptyDictFav') : __('emptyDictSearch')));
+        return;
     }
     if (settings.shuffle !== false || mistakesOnly) pool = shuffleArray(pool);
     const total = mistakesOnly ? pool.length : getQuestionCount();

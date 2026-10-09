@@ -146,6 +146,11 @@ function loadSettings() {
             loaded.darkMode = true;
         }
     }
+    if (!Array.isArray(loaded.favorites)) loaded.favorites = [];
+    if (!Array.isArray(loaded.customVerbs)) loaded.customVerbs = [];
+    if (!Array.isArray(loaded.verbsLearned)) loaded.verbsLearned = [];
+    if (!loaded.verbLastSeen || typeof loaded.verbLastSeen !== 'object') loaded.verbLastSeen = {};
+    if (!loaded.achievements || typeof loaded.achievements !== 'object') loaded.achievements = {};
     return loaded;
 }
 
@@ -461,24 +466,24 @@ function renderDictionary() {
         tr.className = index % 2 === 0 ? 'bg-white hover:bg-indigo-50/50 transition-colors cursor-pointer' : 'bg-slate-50 hover:bg-indigo-50/50 transition-colors cursor-pointer';
         tr.onclick = () => showVerbDetail(verb.v1);
         const isFav = isFavorite(verb.v1);
-        const v1Key = verb.v1.replace(/'/g, "\\'");
+        const v1Arg = escapeHtml(JSON.stringify(String(verb.v1)));
         const groupLabels = ['', 'AAA', 'ABB', 'ABA', 'ABC'];
         const group = classifyVerb(verb);
         tr.innerHTML = `
             <td class="p-4 border-b border-slate-200 font-bold text-indigo-700">
                 <div class="flex items-center gap-1">
-                    <button onclick="event.stopPropagation(); toggleFavorite('${v1Key}')" class="fav-btn" title="${isFav ? __('favRemove') : __('favAdd')}" aria-label="${isFav ? __('favRemove') : __('favAdd')}">
+                    <button onclick="event.stopPropagation(); toggleFavorite(${v1Arg})" class="fav-btn" title="${isFav ? __('favRemove') : __('favAdd')}" aria-label="${isFav ? __('favRemove') : __('favAdd')}">
                         <i class="fas fa-star${isFav ? '' : '-regular'} ${isFav ? 'text-yellow-400' : 'text-slate-300'}"></i>
                     </button>
-                    ${verb.v1}
-                    <button onclick="event.stopPropagation(); speak('${verb.v1}', 'en-US')" class="tts-btn" title="${__('ttsListen')}" aria-label="${__('ttsListen')}">
+                    ${escapeHtml(verb.v1)}
+                    <button onclick="event.stopPropagation(); speak(${v1Arg}, 'en-US')" class="tts-btn" title="${__('ttsListen')}" aria-label="${__('ttsListen')}">
                         <i class="fas fa-volume-up text-sm"></i>
                     </button>
                 </div>
             </td>
-            <td class="p-4 border-b border-slate-200 font-medium">${verb.v2}</td>
-            <td class="p-4 border-b border-slate-200 font-medium">${verb.v3}</td>
-            <td class="p-4 border-b border-slate-200 text-slate-600">${getVerbTranslation(verb)}</td>
+            <td class="p-4 border-b border-slate-200 font-medium">${escapeHtml(verb.v2)}</td>
+            <td class="p-4 border-b border-slate-200 font-medium">${escapeHtml(verb.v3)}</td>
+            <td class="p-4 border-b border-slate-200 text-slate-600">${escapeHtml(getVerbTranslation(verb))}</td>
             <td class="p-4 border-b border-slate-200 text-center">
                 <span class="text-xs font-mono text-slate-400 mr-1">${groupLabels[group]}</span>
                 ${getVerbProgress(verb.v1)}
@@ -911,9 +916,9 @@ function showVerbDetail(v1Key) {
     document.getElementById('verb-detail-title').textContent = verb.v1 + ' — ' + getVerbTranslation(verb);
     let html = '';
     html += '<div class="bg-indigo-50 rounded-xl p-4 grid grid-cols-3 gap-3 text-center">';
-    html += '<div><div class="text-lg font-bold text-indigo-600">' + verb.v1 + '</div><div class="text-xs text-indigo-400">V1</div></div>';
-    html += '<div><div class="text-lg font-bold text-indigo-600">' + verb.v2 + '</div><div class="text-xs text-indigo-400">V2</div></div>';
-    html += '<div><div class="text-lg font-bold text-indigo-600">' + verb.v3 + '</div><div class="text-xs text-indigo-400">V3</div></div>';
+    html += '<div><div class="text-lg font-bold text-indigo-600">' + escapeHtml(verb.v1) + '</div><div class="text-xs text-indigo-400">V1</div></div>';
+    html += '<div><div class="text-lg font-bold text-indigo-600">' + escapeHtml(verb.v2) + '</div><div class="text-xs text-indigo-400">V2</div></div>';
+    html += '<div><div class="text-lg font-bold text-indigo-600">' + escapeHtml(verb.v3) + '</div><div class="text-xs text-indigo-400">V3</div></div>';
     html += '</div>';
     const groupLabels = ['', 'AAA', 'ABB', 'ABA', 'ABC'];
     const group = classifyVerb(verb);
@@ -946,7 +951,7 @@ function showVerbDetail(v1Key) {
     shuffledTemplates.forEach(function(t) {
         const formKey = t.form;
         const correctForm = verb[formKey] || '';
-        const sent = t.text.replace('{v1}', verb.v1).replace('___', '<b>' + correctForm + '</b>');
+        const sent = escapeHtml(t.text.replace('{v1}', verb.v1)).replace('___', '<b>' + escapeHtml(correctForm) + '</b>');
         examplesHtml += '<div class="px-3 py-2 bg-indigo-50 rounded-lg text-sm text-slate-700 leading-relaxed">' + sent + '</div>';
     });
     examplesHtml += '</div></div>';
@@ -1098,11 +1103,15 @@ let currentLettersWord = "";
 let currentLettersSchema = [];
 
 function startLettersTrainer() {
+    const filteredVerbs = getFilteredVerbs();
+    if (filteredVerbs.length === 0) {
+        showToast(settings.favOnly ? __('emptyDictFav') : __('emptyDictSearch'), 'error');
+        return;
+    }
     document.getElementById('letters-start').classList.add('hidden');
     document.getElementById('letters-results').classList.add('hidden');
     document.getElementById('letters-active').classList.remove('hidden');
 
-    const filteredVerbs = getFilteredVerbs();
     lettersQueue = shuffleArray(filteredVerbs).slice(0, getQuestionCount());
     currentLettersIdx = 0;
     lettersScore = 0;
@@ -1351,11 +1360,15 @@ function setTrainerMode(mode) {
 }
 
 function startTrainer() {
+    const filteredVerbs = getFilteredVerbs();
+    if (filteredVerbs.length === 0) {
+        showToast(settings.favOnly ? __('emptyDictFav') : __('emptyDictSearch'), 'error');
+        return;
+    }
     document.getElementById('trainer-start').classList.add('hidden');
     document.getElementById('trainer-results').classList.add('hidden');
     document.getElementById('trainer-active').classList.remove('hidden');
 
-    const filteredVerbs = getFilteredVerbs();
     trainerQueue = shuffleArray(filteredVerbs).slice(0, getQuestionCount());
     currentQuestionIndex = 0;
     trainerScore = 0;
@@ -1372,11 +1385,15 @@ function startTrainer() {
 }
 
 function startMarathon() {
+    const filteredVerbs = getFilteredVerbs();
+    if (filteredVerbs.length === 0) {
+        showToast(settings.favOnly ? __('emptyDictFav') : __('emptyDictSearch'), 'error');
+        return;
+    }
     document.getElementById('trainer-start').classList.add('hidden');
     document.getElementById('trainer-results').classList.add('hidden');
     document.getElementById('trainer-active').classList.remove('hidden');
 
-    const filteredVerbs = getFilteredVerbs();
     trainerQueue = shuffleArray(filteredVerbs);
     currentQuestionIndex = 0;
     trainerScore = 0;
@@ -2137,7 +2154,10 @@ function showExamResults() {
 
 function startExam() {
     examQueue = getExamVerbs();
-    if (examQueue.length === 0) return;
+    if (examQueue.length === 0) {
+        showToast(__('noVerbs'), 'error');
+        return;
+    }
     examIdx = 0;
     examScore = 0;
     examMistakes = 0;
@@ -2963,7 +2983,7 @@ function getFilteredVerbs() {
             filtered = filtered.filter(v => classifyVerb(v) === g);
         }
     }
-    if (settings.favOnly && settings.favorites.length > 0) {
+    if (settings.favOnly) {
         filtered = filtered.filter(v => settings.favorites.includes(v.v1));
     }
     if (settings.useSpacedRep) {
@@ -3005,11 +3025,11 @@ function renderCustomVerbsList() {
     let html = '';
     settings.customVerbs.forEach(v => {
         html += '<div class="flex items-center gap-2 text-xs py-1 border-b border-slate-100 last:border-0">';
-        html += '<span class="font-bold text-indigo-600 w-16">' + v.v1 + '</span>';
-        html += '<span class="text-slate-600 w-20">' + v.v2 + '</span>';
-        html += '<span class="text-slate-600 w-20">' + v.v3 + '</span>';
-        html += '<span class="text-slate-400 flex-1">' + getVerbTranslation(v) + '</span>';
-        html += '<button onclick="removeCustomVerb(\'' + v.v1.replace(/'/g, "\\'") + '\')" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>';
+        html += '<span class="font-bold text-indigo-600 w-16">' + escapeHtml(v.v1) + '</span>';
+        html += '<span class="text-slate-600 w-20">' + escapeHtml(v.v2) + '</span>';
+        html += '<span class="text-slate-600 w-20">' + escapeHtml(v.v3) + '</span>';
+        html += '<span class="text-slate-400 flex-1">' + escapeHtml(getVerbTranslation(v)) + '</span>';
+        html += '<button onclick="removeCustomVerb(this.dataset.v1)" data-v1="' + escapeHtml(v.v1) + '" class="text-red-400 hover:text-red-600"><i class="fas fa-times"></i></button>';
         html += '</div>';
     });
     container.innerHTML = html;
@@ -3222,9 +3242,9 @@ function renderVerbOfDay() {
     if (!verb) return;
     container.innerHTML = '<div class="bg-gradient-to-br from-amber-50 to-yellow-50 border border-amber-200 rounded-xl p-4 text-center">' +
         '<div class="text-xs font-semibold text-amber-600 uppercase tracking-wider mb-2"><i class="fas fa-sun mr-1"></i> ' + __('verbOfDay') + '</div>' +
-        '<div class="text-2xl font-extrabold text-amber-800 mb-1">' + verb.v1 + '</div>' +
-        '<div class="text-sm text-amber-600">' + verb.v2 + ' → ' + verb.v3 + '</div>' +
-        '<div class="text-xs text-amber-500 mt-1">' + getVerbTranslation(verb) + '</div>' +
+        '<div class="text-2xl font-extrabold text-amber-800 mb-1">' + escapeHtml(verb.v1) + '</div>' +
+        '<div class="text-sm text-amber-600">' + escapeHtml(verb.v2) + ' → ' + escapeHtml(verb.v3) + '</div>' +
+        '<div class="text-xs text-amber-500 mt-1">' + escapeHtml(getVerbTranslation(verb)) + '</div>' +
         '</div>';
 }
 
