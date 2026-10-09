@@ -373,7 +373,7 @@
                     <div class="flex flex-wrap justify-center items-center gap-2 mb-8 py-6" id="letters-word-container">
                     </div>
 
-                    <div id="letters-feedback" class="mt-6 p-4 rounded-lg hidden text-center font-medium"></div>
+                    <div id="letters-feedback" class="mt-6 p-4 rounded-lg hidden text-center font-medium" aria-live="polite" aria-atomic="true"></div>
 
                     <div id="letters-verb-card" class="mt-6 p-6 bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl hidden">
                         <div class="text-center mb-4">
@@ -551,15 +551,15 @@
                     <div id="trainer-match-area" class="hidden mb-6">
                         <p class="text-slate-500 text-sm mb-3 text-center font-semibold" data-i18n="trMatchHint">Нажмите на форму, затем на ячейку</p>
                         <div class="flex flex-col sm:flex-row justify-center gap-3 mb-4">
-                            <div class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center min-h-[80px] flex flex-col items-center justify-center" id="match-slot-v1" data-slot="v1" onclick="matchPlace('v1')">
+                            <div role="button" tabindex="0" aria-label="V1 (Infinitive)" class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center min-h-[80px] flex flex-col items-center justify-center" id="match-slot-v1" data-slot="v1" onclick="matchPlace('v1')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();matchPlace('v1')}">
                                 <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">V1 (Infinitive)</span>
                                 <span class="match-value text-lg font-bold text-indigo-700 mt-1"></span>
                             </div>
-                            <div class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center min-h-[80px] flex flex-col items-center justify-center" id="match-slot-v2" data-slot="v2" onclick="matchPlace('v2')">
+                            <div role="button" tabindex="0" aria-label="V2 (Past Simple)" class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center min-h-[80px] flex flex-col items-center justify-center" id="match-slot-v2" data-slot="v2" onclick="matchPlace('v2')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();matchPlace('v2')}">
                                 <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">V2 (Past Simple)</span>
                                 <span class="match-value text-lg font-bold text-indigo-700 mt-1"></span>
                             </div>
-                            <div class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center min-h-[80px] flex flex-col items-center justify-center" id="match-slot-v3" data-slot="v3" onclick="matchPlace('v3')">
+                            <div role="button" tabindex="0" aria-label="V3 (Past Participle)" class="bg-white border-2 border-dashed border-slate-300 rounded-xl p-4 text-center min-h-[80px] flex flex-col items-center justify-center" id="match-slot-v3" data-slot="v3" onclick="matchPlace('v3')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();matchPlace('v3')}">
                                 <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">V3 (Past Participle)</span>
                                 <span class="match-value text-lg font-bold text-indigo-700 mt-1"></span>
                             </div>
@@ -598,7 +598,7 @@
                         </div>
                     </div>
 
-                    <div id="trainer-feedback" class="mt-6 p-4 rounded-lg hidden text-center font-medium"></div>
+                    <div id="trainer-feedback" class="mt-6 p-4 rounded-lg hidden text-center font-medium" aria-live="polite" aria-atomic="true"></div>
 
                     <div class="mt-8">
                         <button id="btn-check" onclick="checkTrainerAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors text-lg" data-i18n="trCheck">
@@ -916,7 +916,7 @@
                         <input type="text" id="speed-input" autocomplete="off" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all text-lg text-center" placeholder="Введите ответ..." data-i18n="speedInputPlaceholder">
                     </div>
 
-                    <div id="speed-feedback" class="p-4 rounded-lg text-center font-bold hidden text-lg"></div>
+                    <div id="speed-feedback" class="p-4 rounded-lg text-center font-bold hidden text-lg" aria-live="polite" aria-atomic="true"></div>
 
                     <div class="mt-4 flex gap-3">
                         <button id="btn-speed-check" onclick="checkSpeedAnswer()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors text-lg" data-i18n="speedCheck">
@@ -1036,7 +1036,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="exam-options"></div>
                     </div>
 
-                    <div id="exam-feedback" class="mt-6 p-4 rounded-lg hidden text-center font-medium"></div>
+                    <div id="exam-feedback" class="mt-6 p-4 rounded-lg hidden text-center font-medium" aria-live="polite" aria-atomic="true"></div>
 
                     <div class="mt-8">
                         <button id="btn-exam-check" onclick="checkExamAnswer()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition-colors text-lg" data-i18n="trCheck">
@@ -1180,7 +1180,7 @@
                         <input type="text" id="prep-input" autocomplete="off" class="w-full px-4 py-4 bg-slate-50 border-2 border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all text-lg text-center" placeholder="Введите предлог..." data-i18n="prepPlaceholder">
                     </div>
 
-                    <div id="prep-feedback" class="p-4 rounded-lg text-center font-bold hidden text-lg"></div>
+                    <div id="prep-feedback" class="p-4 rounded-lg text-center font-bold hidden text-lg" aria-live="polite" aria-atomic="true"></div>
 
                     <div class="mt-4 flex gap-3">
                         <button id="btn-prep-check" onclick="checkPrepAnswer()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-xl shadow-md transition-colors text-lg" data-i18n="prepCheck">

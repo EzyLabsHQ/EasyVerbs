@@ -1714,7 +1714,9 @@ function checkTrainerAnswer() {
             if (!v2Correct) recordMistake(currentVerb, 'v2');
             if (!v3Correct) recordMistake(currentVerb, 'v3');
             feedback.classList.add('bg-red-100', 'text-red-800');
-            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + currentVerb.v2 + '</b> ' + __('trOf') + ' <b>' + currentVerb.v3 + '</b>';
+            const v2Status = v2Correct ? '✓ V2' : '✗ V2: <b>' + escapeHtml(currentVerb.v2) + '</b>';
+            const v3Status = v3Correct ? '✓ V3' : '✗ V3: <b>' + escapeHtml(currentVerb.v3) + '</b>';
+            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <span class="inline-flex gap-3 ml-1">' + v2Status + ' · ' + v3Status + '</span>';
             if (!v2Correct) inputV2.value = currentVerb.v2;
             if (!v3Correct) inputV3.value = currentVerb.v3;
         }
