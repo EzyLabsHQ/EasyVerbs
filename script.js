@@ -1347,6 +1347,22 @@ let currentVerb = null;
 let trainerMode = 'normal';
 let isMarathon = false;
 let trainerTotalAnswered = 0;
+let answerStreak = 0;
+
+function recordProgressAnswer(verb, isCorrect) {
+    if (!verb) return;
+    settings.totalQuestions = (settings.totalQuestions || 0) + 1;
+    if (isCorrect) {
+        settings.totalCorrect = (settings.totalCorrect || 0) + 1;
+        answerStreak++;
+        settings.bestStreak = Math.max(settings.bestStreak || 0, answerStreak);
+        if (!Array.isArray(settings.verbsLearned)) settings.verbsLearned = [];
+        if (!settings.verbsLearned.includes(verb.v1)) settings.verbsLearned.push(verb.v1);
+    } else {
+        answerStreak = 0;
+    }
+    localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
+}
 
 function setTrainerMode(mode) {
     trainerMode = mode;
@@ -1830,6 +1846,7 @@ function checkTrainerAnswer() {
     }
 
     if (allCorrect) trainerScore++;
+    recordProgressAnswer(currentVerb, allCorrect);
     markVerbSeen(currentVerb.v1);
     answerFeedback(allCorrect, document.getElementById('trainer-feedback'));
 
@@ -1884,7 +1901,7 @@ function showTrainerResults() {
         reviewBtn.classList.toggle('hidden', trainerMistakes === 0);
     }
 
-    trackSessionEnd(trainerScore, trainerScore + trainerMistakes);
+    trackSessionEnd(trainerScore, trainerScore + trainerMistakes, true);
     practiceMode = 'normal';
 }
 
@@ -3473,18 +3490,15 @@ function renderAchievementsList() {
     container.innerHTML = html || '<p class="text-sm text-slate-400">' + __('achNone') + '</p>';
 }
 
-function trackSessionEnd(correct, total) {
+function trackSessionEnd(correct, total, answersAlreadyTracked) {
     settings.sessionsCompleted = (settings.sessionsCompleted || 0) + 1;
-    settings.totalCorrect = (settings.totalCorrect || 0) + correct;
-    settings.totalQuestions = (settings.totalQuestions || 0) + total;
-    const streak = (correct === total) ? (settings.bestStreak || 0) + 1 : 0;
-    settings.bestStreak = Math.max(settings.bestStreak || 0, streak);
-
-    if (!settings.verbsLearned) settings.verbsLearned = [];
-    Object.keys(errorStats).forEach(k => {
-        const idx = settings.verbsLearned.indexOf(k);
-        if (idx === -1) settings.verbsLearned.push(k);
-    });
+    if (!answersAlreadyTracked) {
+        settings.totalCorrect = (settings.totalCorrect || 0) + correct;
+        settings.totalQuestions = (settings.totalQuestions || 0) + total;
+        if (correct === total) {
+            settings.bestStreak = Math.max(settings.bestStreak || 0, total);
+        }
+    }
 
     if (!settings.activityLog) settings.activityLog = {};
     const today = new Date().toISOString().slice(0, 10);
