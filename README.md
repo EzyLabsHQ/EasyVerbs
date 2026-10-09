@@ -6,7 +6,7 @@
 
 Vanilla JS · PWA · No frameworks · No ads
 
-[![Version](https://img.shields.io/badge/Version-v0.6.6--beta-blueviolet?style=for-the-badge&logo=semver)](https://github.com/kik4311/EasyVerbs/releases)
+[![Version](https://img.shields.io/badge/Version-v0.6.7--beta-blueviolet?style=for-the-badge&logo=semver)](https://github.com/kik4311/EasyVerbs/releases)
 [![License](https://img.shields.io/badge/License-GPLv3-blue?style=for-the-badge&logo=gnu)](LICENSE)
 [![PWA](https://img.shields.io/badge/PWA-Yes-ff69b4?style=for-the-badge&logo=pwa)](manifest.json)
 [![Status](https://img.shields.io/badge/Status-Ready-28a745?style=for-the-badge&logo=checkmarx)](https://kik4311.github.io/EasyVerbs/)

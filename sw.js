@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-const CACHE = 'easyverbs-v0.6.6';
+const CACHE = 'easyverbs-v0.6.7';
 const URLS = [
   './',
   'index.html',
