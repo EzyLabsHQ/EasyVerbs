@@ -90,6 +90,9 @@
                 <button onclick="switchTab('prepositions')" id="tab-prepositions" class="nav-btn px-1.5 sm:px-2.5 py-1.5 sm:py-2 rounded-lg font-medium hover:bg-white/15" data-i18n-title="navPrepositions" role="tab" aria-selected="false" aria-controls="view-prepositions">
                     <i class="fas fa-link"></i> <span class="nav-label" data-i18n="navPrepositions">Предлоги</span>
                 </button>
+                <button onclick="switchTab('updates')" id="tab-updates" class="nav-btn px-1.5 sm:px-2.5 py-1.5 sm:py-2 rounded-lg font-medium hover:bg-white/15" data-i18n-title="navUpdates" role="tab" aria-selected="false" aria-controls="view-updates">
+                    <i class="fas fa-history"></i> <span class="nav-label" data-i18n="navUpdates">Обновления</span>
+                </button>
                 <button onclick="switchTab('about')" id="tab-about" class="nav-btn px-1.5 sm:px-2.5 py-1.5 sm:py-2 rounded-lg font-medium hover:bg-white/15" data-i18n-title="navAbout" role="tab" aria-selected="false" aria-controls="view-about">
                     <i class="fas fa-info-circle"></i> <span class="nav-label" data-i18n="navAbout">О сайте</span>
                 </button>
@@ -1229,6 +1232,25 @@
                         <div class="absolute left-[19px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-amber-300 via-emerald-300 to-slate-300"></div>
 
                         <div class="space-y-6">
+                            <div class="relative pl-12">
+                                <div class="absolute left-[11px] top-1 w-[17px] h-[17px] rounded-full bg-rose-400 border-2 border-white shadow"></div>
+                                <div class="bg-rose-50 rounded-xl p-4 border border-rose-200">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <span class="text-xs font-bold text-rose-700 bg-rose-200 px-2 py-0.5 rounded-full" data-i18n="updDate10">10 октября 2026</span>
+                                        <span class="text-xs text-rose-500 font-semibold" data-i18n="updTag10">Исправления</span>
+                                    </div>
+                                    <div class="font-semibold text-rose-900 text-sm mb-2" data-i18n="updHeading10">Стабилизация тренировок и настроек</div>
+                                    <ul class="text-xs text-rose-800 space-y-1">
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item1">Исправлен учёт серии ответов и изученных глаголов в статистике.</span></li>
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item2">Исправлены подписи полей в аудиотренировке для V2 и V3.</span></li>
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item3">Улучшена обратная связь после ответов и доступность режима «Сопоставить».</span></li>
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item4">Исправлены фильтры групп, режим «Только избранные» и пустые наборы вопросов.</span></li>
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item5">В настройках пункт количества вопросов переименован в «Все вопросы».</span></li>
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item6">Нельзя отключить все формы V1/V2/V3 одновременно.</span></li>
+                                        <li><i class="fas fa-check text-rose-500 mr-2 w-4"></i><span data-i18n="upd10Item7">Удалён блок «Помогите стать лучше» из раздела «О сайте».</span></li>
+                                    </ul>
+                                </div>
+                            </div>
                             <div class="relative pl-12">
                                 <div class="absolute left-[11px] top-1 w-[17px] h-[17px] rounded-full bg-indigo-400 border-2 border-white shadow"></div>
                                 <div class="bg-indigo-50 rounded-xl p-4 border border-indigo-200">
