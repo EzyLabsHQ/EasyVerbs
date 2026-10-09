@@ -1572,7 +1572,7 @@
                                 <option value="10">10</option>
                                 <option value="20">20</option>
                                 <option value="50">50</option>
-                                <option value="all" data-i18n="setAllLevels">Все</option>
+                                <option value="all" data-i18n="setAllQuestions">Все вопросы</option>
                             </select>
                         </div>
                         <div class="setting-row">
@@ -1606,9 +1606,9 @@
                                 <div class="setting-desc" data-i18n="setFormsLettersDesc">Какие формы показывать в тренажере букв</div>
                             </div>
                             <div class="flex gap-2">
-                                <label class="form-check-label"><input type="checkbox" checked onchange="saveSettings()" id="form-v1"> V1</label>
-                                <label class="form-check-label"><input type="checkbox" checked onchange="saveSettings()" id="form-v2"> V2</label>
-                                <label class="form-check-label"><input type="checkbox" checked onchange="saveSettings()" id="form-v3"> V3</label>
+                                <label class="form-check-label"><input type="checkbox" checked onchange="saveLetterFormSettings(event)" id="form-v1"> V1</label>
+                                <label class="form-check-label"><input type="checkbox" checked onchange="saveLetterFormSettings(event)" id="form-v2"> V2</label>
+                                <label class="form-check-label"><input type="checkbox" checked onchange="saveLetterFormSettings(event)" id="form-v3"> V3</label>
                             </div>
                         </div>
                     </div>

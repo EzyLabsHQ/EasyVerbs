@@ -149,6 +149,7 @@ function loadSettings() {
     if (!Array.isArray(loaded.favorites)) loaded.favorites = [];
     if (!Array.isArray(loaded.customVerbs)) loaded.customVerbs = [];
     if (!Array.isArray(loaded.verbsLearned)) loaded.verbsLearned = [];
+    if (!loaded.formsV1 && !loaded.formsV2 && !loaded.formsV3) loaded.formsV1 = true;
     if (!loaded.verbLastSeen || typeof loaded.verbLastSeen !== 'object') loaded.verbLastSeen = {};
     if (!loaded.achievements || typeof loaded.achievements !== 'object') loaded.achievements = {};
     return loaded;
@@ -193,6 +194,16 @@ function saveSettings() {
     applyCompactMode();
     applyWelcomeAlign();
     localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
+}
+
+function saveLetterFormSettings(event) {
+    const formIds = ['form-v1', 'form-v2', 'form-v3'];
+    const hasActiveForm = formIds.some(id => document.getElementById(id)?.checked);
+    if (!hasActiveForm) {
+        if (event?.target) event.target.checked = true;
+        showToast(__('setAtLeastOneForm'), 'error');
+    }
+    saveSettings();
 }
 
 // ================= НАВИГАЦИЯ =================
