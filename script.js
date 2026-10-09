@@ -1626,11 +1626,19 @@ function loadTrainerQuestion() {
         const formIdx = Math.floor(Math.random() * 3);
         currentSentenceForm = formKeys[formIdx];
         const labels = ['V1', 'V2', 'V3'];
+        const inputLabels = [__('trV1Label'), __('dictV2'), __('dictV3')];
+        const inputPlaceholders = [__('trV1Placeholder'), __('trV2Placeholder'), __('trV3Placeholder')];
         document.getElementById('trainer-audio-v1').textContent = currentVerb.v1;
         document.getElementById('trainer-audio-form-label').textContent = labels[formIdx];
         if (audioArea) audioArea.classList.remove('hidden');
         document.getElementById('trainer-feedback-area').className = 'space-y-6';
-        if (v1Row) { v1Row.classList.remove('hidden'); document.getElementById('input-v1').placeholder = __('trV1Placeholder'); document.getElementById('input-v1').focus(); }
+        if (v1Row) {
+            v1Row.classList.remove('hidden');
+            const inputLabel = v1Row.querySelector('label');
+            if (inputLabel) inputLabel.textContent = inputLabels[formIdx];
+            inputV1.placeholder = inputPlaceholders[formIdx];
+            inputV1.focus();
+        }
         setTimeout(() => playTrainerAudio(), 300);
     }
 
