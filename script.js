@@ -510,6 +510,10 @@ function renderDictionary() {
         tr.innerHTML = '<td colspan="5" class="p-8 text-center text-slate-400">' + (favOnly ? __('emptyDictFav') : __('emptyDictSearch')) + '</td>';
         tbody.appendChild(tr);
     }
+
+    // после перерисовки (звёздочка, группа, язык) сохраняем активный поиск
+    const search = document.getElementById('searchInput');
+    if (search && search.value.trim() && data.length > 0) filterDictionary();
 }
 
 function highlightDictRow(row, term) {
@@ -754,6 +758,7 @@ let fcQuizQueue = [];
 let fcQuizIndex = 0;
 let fcQuizScore = 0;
 let fcQuizTotal = 0;
+let fcQuizAnswered = false;
 
 function startFlashcardQuiz() {
     if (flashcardFilteredData.length === 0) {
@@ -781,13 +786,15 @@ function loadFlashcardQuestion() {
     document.getElementById('fc-quiz-v3-input').value = '';
     document.getElementById('fc-quiz-progress').textContent = `${fcQuizIndex + 1} / ${fcQuizTotal}`;
     document.getElementById('fc-quiz-result').classList.add('hidden');
+    fcQuizAnswered = false;
     hideConfidenceBar();
     document.getElementById('fc-quiz-v2-input').focus();
 }
 
 function checkFlashcardAnswer() {
     const verb = fcQuizQueue[fcQuizIndex];
-    if (!verb) return;
+    if (!verb || fcQuizAnswered) return;
+    fcQuizAnswered = true;
     const v2Input = normalizeTyped(document.getElementById('fc-quiz-v2-input').value);
     const v3Input = normalizeTyped(document.getElementById('fc-quiz-v3-input').value);
     const v2Forms = getAcceptedVariations(verb.v2).map(f => f.toLowerCase());
@@ -816,6 +823,7 @@ function checkFlashcardAnswer() {
 }
 
 function skipFlashcardQuestion() {
+    if (fcQuizAnswered) return;
     fcQuizIndex++;
     loadFlashcardQuestion();
 }
@@ -836,11 +844,12 @@ function showConfidenceButtons(v1Key) {
     const bar = document.createElement('div');
     bar.id = 'confidence-bar';
     bar.className = 'flex items-center justify-center gap-2 mt-3';
+    const keyArg = escapeHtml(JSON.stringify(String(v1Key)));
     bar.innerHTML = `
         <span class="text-xs text-slate-400 mr-1">${__('easyLabel')}?</span>
-        <button onclick="saveConfidence('${v1Key}', 3)" class="px-3 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-medium transition-colors">${__('easyLabel')}</button>
-        <button onclick="saveConfidence('${v1Key}', 2)" class="px-3 py-1 text-xs rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 font-medium transition-colors">${__('mediumLabel')}</button>
-        <button onclick="saveConfidence('${v1Key}', 1)" class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium transition-colors">${__('hardLabel')}</button>
+        <button onclick="saveConfidence(${keyArg}, 3)" class="px-3 py-1 text-xs rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 font-medium transition-colors">${__('easyLabel')}</button>
+        <button onclick="saveConfidence(${keyArg}, 2)" class="px-3 py-1 text-xs rounded-full bg-amber-100 text-amber-700 hover:bg-amber-200 font-medium transition-colors">${__('mediumLabel')}</button>
+        <button onclick="saveConfidence(${keyArg}, 1)" class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-700 hover:bg-red-200 font-medium transition-colors">${__('hardLabel')}</button>
     `;
     const fcResult = document.getElementById('fc-quiz-result');
     if (fcResult && !fcResult.classList.contains('hidden')) {
@@ -2062,6 +2071,7 @@ function showExamMCQ(correctAnswer, correctArr) {
         btn.onclick = function() {
             document.querySelectorAll('#exam-options button').forEach(b => {
                 b.className = 'px-4 py-3 rounded-xl text-base font-semibold border-2 border-slate-200 bg-white text-slate-700 text-left';
+                delete b.dataset.selected;
             });
             btn.className = 'px-4 py-3 rounded-xl text-base font-semibold border-2 border-indigo-500 bg-indigo-50 text-indigo-700 ring-2 ring-indigo-300 text-left';
             btn.dataset.selected = 'true';
@@ -2126,7 +2136,7 @@ function checkExamAnswer() {
 
     document.getElementById('exam-score').textContent = examScore;
     document.getElementById('exam-mistakes').textContent = examMistakes;
-    document.getElementById('exam-feedback').textContent = userCorrect ? __('letCorrect') : __('letWrong') + ': ' + expectedText;
+    document.getElementById('exam-feedback').textContent = userCorrect ? __('letCorrect') : __('trError') + ' ' + expectedText;
     document.getElementById('exam-feedback').className = 'mt-6 p-4 rounded-lg text-center font-medium ' + (userCorrect ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700');
     document.getElementById('exam-feedback').classList.remove('hidden');
     document.getElementById('btn-exam-check').classList.add('hidden');
@@ -3081,6 +3091,7 @@ function recordMistake(verb, field) {
     if (!errorStats[key].forms) errorStats[key].forms = { v2: 0, v3: 0, spelling: 0 };
     errorStats[key].mistakes++;
     errorStats[key].lastMistake = new Date().toLocaleString(uiLocale());
+    errorStats[key].lastMistakeAt = Date.now();
     if (field && errorStats[key].forms[field] !== undefined) {
         errorStats[key].forms[field]++;
     }
@@ -3217,10 +3228,10 @@ function getMistakeStats() {
 
 function getSmartMistakesList() {
     return [...mistakesList].sort((a, b) => {
-        const ea = errorStats[a.v1] || { mistakes: 0, lastMistake: null };
-        const eb = errorStats[b.v1] || { mistakes: 0, lastMistake: null };
+        const ea = errorStats[a.v1] || { mistakes: 0 };
+        const eb = errorStats[b.v1] || { mistakes: 0 };
         if (eb.mistakes !== ea.mistakes) return eb.mistakes - ea.mistakes;
-        return new Date(eb.lastMistake || 0) - new Date(ea.lastMistake || 0);
+        return (eb.lastMistakeAt || 0) - (ea.lastMistakeAt || 0);
     });
 }
 
@@ -3259,8 +3270,14 @@ function isFavorite(v1Key) {
 }
 
 // ================= ГЛАГОЛ ДНЯ =================
+// YYYY-MM-DD по локальному времени (toISOString даёт UTC и «переключает день» ночью)
+function localDateKey(date) {
+    const d = date || new Date();
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
 function getVerbOfDay() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateKey();
     if (settings.verbOfDayDate === today && settings.verbOfDay) {
         return settings.verbOfDay;
     }
@@ -3305,7 +3322,6 @@ const verbPrepositions = [
     { v1: 'care', preposition: 'about', translation: 'заботиться о' },
     { v1: 'compare', preposition: 'with/to', translation: 'сравнивать с' },
     { v1: 'concentrate', preposition: 'on', translation: 'сосредоточиться на' },
-    { v1: 'consist', preposition: 'of', translation: 'состоять из' },
     { v1: 'insist', preposition: 'on', translation: 'настаивать на' },
     { v1: 'laugh', preposition: 'at', translation: 'смеяться над' },
     { v1: 'pay', preposition: 'for', translation: 'платить за' },
@@ -3514,7 +3530,7 @@ function trackSessionEnd(correct, total, answersAlreadyTracked) {
     }
 
     if (!settings.activityLog) settings.activityLog = {};
-    const today = new Date().toISOString().slice(0, 10);
+    const today = localDateKey();
     if (!settings.activityLog[today]) settings.activityLog[today] = { sessions: 0, correct: 0, total: 0 };
     settings.activityLog[today].sessions++;
     settings.activityLog[today].correct += correct;
@@ -3773,8 +3789,18 @@ let konamiIdx = 0;
 
 // ================= KEYBOARD EVENTS =================
 document.addEventListener('keydown', function(event) {
-    const tag = document.activeElement && document.activeElement.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    const active = document.activeElement;
+    const tag = active && active.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        // Enter в поле ответа активного тренажёра должен проверять ответ
+        const inAnswerInput = tag === 'INPUT' && event.key === 'Enter' && !event.isComposing &&
+            active.closest('.view-section') && !active.closest('#view-flashcards');
+        if (!inAnswerInput) return;
+        event.preventDefault();
+    } else if (event.key === 'Enter' && tag === 'BUTTON' && /^btn-.*(check|next)$/.test(active.id)) {
+        // фокус на кнопке «Проверить»/«Далее»: её обработает код ниже, не даём браузеру нажать её второй раз
+        event.preventDefault();
+    }
     // Konami code check
     if (event.key === konamiCode[konamiIdx] || event.key.toLowerCase() === konamiCode[konamiIdx]) {
         konamiIdx++;
@@ -3787,6 +3813,13 @@ document.addEventListener('keydown', function(event) {
     }
     // Tab shortcuts 1-9
     const num = parseInt(event.key);
+    if (num >= 1 && num <= 4 && mistakesMode === 'quiz' &&
+        !document.getElementById('view-mistakes').classList.contains('hidden') &&
+        !document.getElementById('mistakes-active').classList.contains('hidden')) {
+        const opt = document.querySelectorAll('#mistakes-quiz-options button')[num - 1];
+        if (opt && !opt.disabled) opt.click();
+        return;
+    }
     if (num >= 1 && num <= 9) {
         const tabs = ['dashboard', 'dictionary', 'flashcards', 'letters', 'trainer', 'mistakes', 'speed', 'exam', 'stats'];
         switchTab(tabs[num - 1]);
@@ -3855,7 +3888,14 @@ document.addEventListener('keydown', function(event) {
             const speedCheck = document.getElementById('btn-speed-check');
             const speedNext = document.getElementById('btn-speed-next');
             if (!speedCheck.classList.contains('hidden')) checkSpeedAnswer();
-            else if (!speedNext.classList.contains('hidden')) loadSpeedQuestion();
+            else if (!speedNext.classList.contains('hidden')) speedNextQuestion();
+        }
+        else if (!document.getElementById('view-prepositions').classList.contains('hidden')) {
+            if (document.getElementById('prep-active').classList.contains('hidden')) return;
+            const ck = document.getElementById('btn-prep-check');
+            const nx = document.getElementById('btn-prep-next');
+            if (!ck.classList.contains('hidden')) checkPrepAnswer();
+            else if (!nx.classList.contains('hidden')) nextPrepQuestion();
         }
     }
     if (event.key === 'Escape') {
@@ -3875,6 +3915,7 @@ let speedQuestionType = 0; // 0=V1->V2, 1=V1->V3, 2=Translation->V1, 3=V2->V1
 let speedAnswered = false;
 let speedEnded = false;
 let speedQueue = [];
+let speedNextTimeout = null;
 
 const speedQuestionTypes = ['speedTypeV2', 'speedTypeV3', 'speedTypeTrans', 'speedTypeV1'];
 
@@ -4037,7 +4078,14 @@ function checkSpeedAnswer() {
     document.getElementById('btn-speed-check').classList.add('hidden');
     document.getElementById('btn-speed-next').classList.remove('hidden');
 
-    setTimeout(loadSpeedQuestion, correct ? 600 : 900);
+    speedNextTimeout = setTimeout(speedNextQuestion, correct ? 600 : 900);
+}
+
+function speedNextQuestion() {
+    clearTimeout(speedNextTimeout);
+    speedNextTimeout = null;
+    if (speedEnded || document.getElementById('speed-active').classList.contains('hidden')) return;
+    loadSpeedQuestion();
 }
 
 function endSpeedRun() {
@@ -4096,6 +4144,8 @@ function renderSpeedLeaderboard() {
 }
 
 function resetSpeedRun() {
+    clearTimeout(speedNextTimeout);
+    speedNextTimeout = null;
     clearInterval(speedTimerInterval);
     speedTimerInterval = null;
     speedEnded = false;
