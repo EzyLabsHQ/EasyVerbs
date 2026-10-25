@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-const CACHE = 'easyverbs-v0.6.7';
+const CACHE = 'easyverbs-v0.6.8';
 const URLS = [
   './',
   'index.html',
@@ -43,7 +43,7 @@ self.addEventListener('activate', function(event) {
 self.addEventListener('fetch', function(event) {
   event.respondWith(
     fetch(event.request).then(function(resp) {
-      if (resp && resp.status === 200 && event.request.method === 'GET') {
+      if (resp && (resp.status === 200 || resp.type === 'opaque') && event.request.method === 'GET') {
         const copy = resp.clone();
         caches.open(CACHE).then(function(cache) {
           cache.put(event.request, copy);

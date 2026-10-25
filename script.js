@@ -2,7 +2,7 @@
 // Copyright (C) 2026 EzyLabsHQ
 // This program is free software under GPL v3 - see LICENSE
 
-const APP_VERSION = 'v0.6.7-beta';
+const APP_VERSION = 'v0.6.8-beta';
 
 // База данных неправильных глаголов
 
@@ -462,7 +462,7 @@ function renderDictionary() {
     tbody.innerHTML = '';
 
     let fullList = getFullVerbList();
-    const grp = settings.verbGroup || 'all';
+    const grp = dictGroup;
     if (grp !== 'all') {
         const g = parseInt(grp);
         if (!isNaN(g)) {
@@ -557,8 +557,10 @@ function highlightDictRow(row, term) {
     });
 }
 
+let dictGroup = 'all';
+
 function setDictGroup(group) {
-    settings.verbGroup = group;
+    dictGroup = group;
     document.querySelectorAll('.dict-group-btn').forEach(btn => {
         btn.className = "dict-group-btn px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-white text-slate-600 border border-slate-200 hover:bg-indigo-50";
     });
@@ -759,16 +761,19 @@ let fcQuizIndex = 0;
 let fcQuizScore = 0;
 let fcQuizTotal = 0;
 let fcQuizAnswered = false;
+let fcQuizTimeout = null;
 
 function startFlashcardQuiz() {
     if (flashcardFilteredData.length === 0) {
         showToast(__('fcNoVerbs'), 'error');
         return;
     }
+    clearTimeout(fcQuizTimeout);
     fcQuizQueue = shuffleArray([...flashcardFilteredData]);
     fcQuizIndex = 0;
     fcQuizScore = 0;
     fcQuizTotal = fcQuizQueue.length;
+    document.getElementById('fc-quiz-score').textContent = __('fcQuizScore') + ': 0';
     document.getElementById('fc-start-btn').classList.add('hidden');
     document.getElementById('fc-quiz-area').classList.remove('hidden');
     document.getElementById('fc-quiz-results').classList.add('hidden');
@@ -819,7 +824,8 @@ function checkFlashcardAnswer() {
     document.getElementById('fc-quiz-score').textContent = __('fcQuizScore') + ': ' + fcQuizScore;
     showConfidenceButtons(verb.v1);
     fcQuizIndex++;
-    setTimeout(loadFlashcardQuestion, 1500);
+    clearTimeout(fcQuizTimeout);
+    fcQuizTimeout = setTimeout(loadFlashcardQuestion, (v2Correct && v3Correct) ? 1500 : 3500);
 }
 
 function skipFlashcardQuestion() {
@@ -1056,6 +1062,16 @@ function getAcceptedVariations(formStr) {
     return Array.from(variations).map(v => v.trim()).filter(Boolean);
 }
 
+// Несколько глаголов могут иметь один перевод (do/make, say/speak, beat/hit):
+// в режимах «перевод → V1» принимаем любой из них.
+function matchesVerbByTranslation(typed, verb) {
+    const tr = getVerbTranslation(verb);
+    return getFullVerbList().some(v => {
+        if (v !== verb && getVerbTranslation(v) !== tr) return false;
+        return getAcceptedVariations(v.v1).includes(typed);
+    });
+}
+
 // ================= ИНТЕРВАЛЬНЫЕ ПОВТОРЕНИЯ =================
 function markVerbSeen(v1) {
     if (!settings.verbLastSeen) settings.verbLastSeen = {};
@@ -1191,10 +1207,12 @@ function generateWordSchema(word) {
     const len = word.length;
     let hideCount = Math.max(1, Math.floor(len * 0.4));
 
+    const letterIdx = [];
+    for (let i = 0; i < len; i++) if (/[a-z]/i.test(word[i])) letterIdx.push(i);
+    hideCount = Math.min(hideCount, letterIdx.length);
     const hiddenIndices = new Set();
     while (hiddenIndices.size < hideCount) {
-        const randIdx = Math.floor(Math.random() * len);
-        hiddenIndices.add(randIdx);
+        hiddenIndices.add(letterIdx[Math.floor(Math.random() * letterIdx.length)]);
     }
 
     for (let i = 0; i < len; i++) {
@@ -1542,6 +1560,9 @@ function loadTrainerQuestion() {
     inputV1.value = '';
     inputV2.value = '';
     inputV3.value = '';
+    const v1LabelEl = document.querySelector('#trainer-v1-row label');
+    if (v1LabelEl) v1LabelEl.textContent = __('trV1Label');
+    inputV1.placeholder = __('trV1Placeholder');
 
     [inputV1, inputV2, inputV3].forEach(inp => {
         if (!inp) return;
@@ -1697,6 +1718,13 @@ function playTrainerAudio() {
 }
 
 function checkTrainerAnswer() {
+    // пустой ответ (например, случайный Enter) не засчитывается как ошибка
+    const emptyIds = { 'normal': ['input-v2', 'input-v3'], 'reverse-v1': ['input-v1'], 'reverse-forms': ['input-v1'], 'audio': ['input-v1'],
+        'sentences': [currentSentenceForm === 'v2' ? 'input-v2' : 'input-v3'] }[trainerMode];
+    if (emptyIds && emptyIds.every(id => !document.getElementById(id).value.trim())) {
+        document.getElementById(emptyIds[0]).focus();
+        return;
+    }
     const isCorrect = (userInput, expectedForm) => {
         const variations = getAcceptedVariations(expectedForm);
         return variations.includes(userInput);
@@ -1743,7 +1771,7 @@ function checkTrainerAnswer() {
     } else if (trainerMode === 'reverse-v1') {
         const inputV1 = document.getElementById('input-v1');
         const val1 = normalizeTyped(inputV1.value);
-        const v1Correct = isCorrect(val1, currentVerb.v1);
+        const v1Correct = matchesVerbByTranslation(val1, currentVerb);
 
         inputV1.className = v1Correct ? successClass : errorClass;
         inputV1.disabled = true;
@@ -1758,7 +1786,7 @@ function checkTrainerAnswer() {
             playSound('wrong');
             recordMistake(currentVerb, 'v1');
             feedback.classList.add('bg-red-100', 'text-red-800');
-            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + currentVerb.v1 + '</b>';
+            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + escapeHtml(currentVerb.v1) + '</b>';
             inputV1.value = currentVerb.v1;
         }
     } else if (trainerMode === 'reverse-forms') {
@@ -1779,7 +1807,7 @@ function checkTrainerAnswer() {
             playSound('wrong');
             recordMistake(currentVerb, 'v1');
             feedback.classList.add('bg-red-100', 'text-red-800');
-            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + currentVerb.v1 + '</b>';
+            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + escapeHtml(currentVerb.v1) + '</b>';
             inputV1.value = currentVerb.v1;
         }
     } else if (trainerMode === 'sentences') {
@@ -1801,9 +1829,9 @@ function checkTrainerAnswer() {
             playSound('wrong');
             recordMistake(currentVerb, currentSentenceForm);
             feedback.classList.add('bg-red-100', 'text-red-800');
-            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + expectedForm + '</b>';
+            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + escapeHtml(expectedForm) + '</b>';
             const sent = currentSentenceTemplate.replace('{v1}', currentVerb.v1);
-            feedback.innerHTML += '<br><span class="text-sm">' + __('trSentenceContext') + ': ' + sent.replace('___', '<b>' + expectedForm + '</b>') + '</span>';
+            feedback.innerHTML += '<br><span class="text-sm">' + __('trSentenceContext') + ': ' + sent.replace('___', '<b>' + escapeHtml(expectedForm) + '</b>') + '</span>';
             inputField.value = expectedForm;
         }
     } else if (trainerMode === 'audio') {
@@ -1828,7 +1856,7 @@ function checkTrainerAnswer() {
             playSound('wrong');
             recordMistake(currentVerb, currentSentenceForm);
             feedback.classList.add('bg-red-100', 'text-red-800');
-            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + expectedForm + '</b>';
+            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + escapeHtml(expectedForm) + '</b>';
             inputV1.value = expectedForm;
         }
     } else if (trainerMode === 'match') {
@@ -1856,7 +1884,7 @@ function checkTrainerAnswer() {
             trainerMistakes++;
             playSound('wrong');
             feedback.classList.add('bg-red-100', 'text-red-800');
-            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' V1: <b>' + currentVerb.v1 + '</b>, V2: <b>' + currentVerb.v2 + '</b>, V3: <b>' + currentVerb.v3 + '</b>';
+            feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' V1: <b>' + escapeHtml(currentVerb.v1) + '</b>, V2: <b>' + escapeHtml(currentVerb.v2) + '</b>, V3: <b>' + escapeHtml(currentVerb.v3) + '</b>';
             const correctMap = { v1: currentVerb.v1, v2: currentVerb.v2, v3: currentVerb.v3 };
             Object.keys(correctMap).forEach(slot => {
                 const slotEl = document.querySelector(`#match-slot-${slot} .match-value`);
@@ -2193,7 +2221,7 @@ function showExamResults() {
     examWrongList.forEach(function(item) {
         const row = document.createElement('div');
         row.className = 'flex justify-between items-center gap-3 px-4 py-2 bg-slate-50 rounded-lg border border-slate-200 text-sm';
-        row.innerHTML = '<span class="font-semibold text-slate-700">' + item.verb.v1 + '</span><span class="text-slate-500">' + (item.expected || '') + '</span>';
+        row.innerHTML = '<span class="font-semibold text-slate-700">' + escapeHtml(item.verb.v1) + '</span><span class="text-slate-500">' + escapeHtml(item.expected || '') + '</span>';
         listEl.appendChild(row);
     });
 
@@ -2411,9 +2439,9 @@ function checkMistakesFormsAnswer() {
         playSound('wrong');
         fb.classList.add('bg-red-100', 'text-red-800');
         let msg = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('misWrongFeedback') + ' ';
-        if (!v2ok) { msg += '<b>' + mistakesCurrentVerb.v2 + '</b>'; inpV2.value = mistakesCurrentVerb.v2; }
+        if (!v2ok) { msg += '<b>' + escapeHtml(mistakesCurrentVerb.v2) + '</b>'; inpV2.value = mistakesCurrentVerb.v2; }
         if (!v2ok && !v3ok) msg += ' ' + __('trOf') + ' ';
-        if (!v3ok) { msg += '<b>' + mistakesCurrentVerb.v3 + '</b>'; inpV3.value = mistakesCurrentVerb.v3; }
+        if (!v3ok) { msg += '<b>' + escapeHtml(mistakesCurrentVerb.v3) + '</b>'; inpV3.value = mistakesCurrentVerb.v3; }
         fb.innerHTML = msg;
     }
     markVerbSeen(mistakesCurrentVerb.v1);
@@ -2445,9 +2473,12 @@ function loadMistakesLettersQuestion() {
     mistakesCurrentSchema = [];
     const len = mistakesCurrentWord.length;
     let hideCount = Math.max(1, Math.floor(len * 0.5));
+    const letterIdx = [];
+    for (let i = 0; i < len; i++) if (/[a-z]/i.test(word[i])) letterIdx.push(i);
+    hideCount = Math.min(hideCount, letterIdx.length);
     const hiddenIndices = new Set();
     while (hiddenIndices.size < hideCount) {
-        hiddenIndices.add(Math.floor(Math.random() * len));
+        hiddenIndices.add(letterIdx[Math.floor(Math.random() * letterIdx.length)]);
     }
     for (let i = 0; i < len; i++) {
         mistakesCurrentSchema.push({
@@ -2536,7 +2567,7 @@ function checkMistakesLettersAnswer() {
     } else {
         playSound('wrong');
         fb.classList.add('bg-red-100', 'text-red-800');
-        fb.innerHTML = '<i class="fas fa-times-circle mr-2"></i> ' + __('misLetterError') + ' "' + document.getElementById('mistakes-letters-form-label').textContent + '". ' + __('misWrongFeedback') + ' <b>' + mistakesCurrentWord + '</b>';
+        fb.innerHTML = '<i class="fas fa-times-circle mr-2"></i> ' + __('misLetterError') + ' "' + document.getElementById('mistakes-letters-form-label').textContent + '". ' + __('misWrongFeedback') + ' <b>' + escapeHtml(mistakesCurrentWord) + '</b>';
     }
     markVerbSeen(mistakesCurrentVerb.v1);
 
@@ -2556,9 +2587,9 @@ function loadMistakesQuizQuestion() {
     const verb = mistakesCurrentVerb;
     document.getElementById('mistakes-quiz-v1').textContent = verb.v1;
 
-    const formIdx = Math.floor(Math.random() * 3);
-    const formNames = ["V2 (Past Simple)", "V3 (Past Participle)", "V1 (Infinitive)"];
-    const formKeys = ["v2", "v3", "v1"];
+    const formIdx = Math.floor(Math.random() * 2);
+    const formNames = ["V2 (Past Simple)", "V3 (Past Participle)"];
+    const formKeys = ["v2", "v3"];
     document.getElementById('mistakes-quiz-form-name').textContent = formNames[formIdx];
 
     let correctAnswer = verb[formKeys[formIdx]];
@@ -2612,7 +2643,7 @@ function checkMistakesQuizAnswer(btn, selected) {
         btn.className = "w-full text-left px-5 py-4 border-2 border-red-500 bg-red-50 rounded-xl font-bold text-lg flex items-center";
         btn.innerHTML += ' <i class="fas fa-times text-red-600 ml-auto"></i>';
         fb.classList.add('bg-red-100', 'text-red-800');
-        fb.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('misQuizWrong') + ' <b>' + mistakesQuizAnswer + '</b>';
+        fb.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('misQuizWrong') + ' <b>' + escapeHtml(mistakesQuizAnswer) + '</b>';
 
         allBtns.forEach(b => {
             if (b.dataset.answer && b.dataset.answer.toLowerCase() === mistakesQuizAnswer) {
@@ -3148,6 +3179,25 @@ function downloadFile(blob, filename) {
     document.body.removeChild(link);
 }
 
+function sanitizeCustomVerbs(list) {
+    if (!Array.isArray(list)) return [];
+    const seen = new Set();
+    const out = [];
+    list.forEach(v => {
+        if (!v || typeof v !== 'object') return;
+        const clean = {};
+        ['v1', 'v2', 'v3', 'translation', 'tag'].forEach(k => {
+            clean[k] = typeof v[k] === 'string' ? v[k].trim() : '';
+        });
+        if (!clean.v1 || !clean.v2 || !clean.v3) return;
+        if (seen.has(clean.v1) || verbsData.some(b => b.v1 === clean.v1)) return;
+        clean.complexity = [1, 2, 3].includes(v.complexity) ? v.complexity : 1;
+        seen.add(clean.v1);
+        out.push(clean);
+    });
+    return out;
+}
+
 function importData(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -3155,16 +3205,19 @@ function importData(event) {
     reader.onload = function(e) {
         try {
             const data = JSON.parse(e.target.result);
-            if (data.errorStats && typeof data.errorStats === 'object') {
+            if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('bad format');
+            if (data.errorStats && typeof data.errorStats === 'object' && !Array.isArray(data.errorStats)) {
                 errorStats = data.errorStats;
                 localStorage.setItem('verbTrainerErrors', JSON.stringify(errorStats));
             }
-            if (data.settings && typeof data.settings === 'object') {
-                Object.assign(settings, data.settings);
+            if (data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings)) {
+                const incoming = Object.assign({}, data.settings);
+                delete incoming.customVerbs;
+                Object.assign(settings, incoming);
                 localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
             }
             if (data.customVerbs && Array.isArray(data.customVerbs)) {
-                settings.customVerbs = data.customVerbs;
+                settings.customVerbs = sanitizeCustomVerbs(data.customVerbs);
                 localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
                 renderCustomVerbsList();
             }
@@ -3201,10 +3254,8 @@ function importCustomVerbs(event) {
             const data = JSON.parse(e.target.result);
             if (data.customVerbs && Array.isArray(data.customVerbs)) {
                 if (!settings.customVerbs) settings.customVerbs = [];
-                data.customVerbs.forEach(v => {
-                    if (v.v1 && v.v2 && v.v3 && !settings.customVerbs.find(c => c.v1 === v.v1) && !verbsData.find(c => c.v1 === v.v1)) {
-                        settings.customVerbs.push(v);
-                    }
+                sanitizeCustomVerbs(data.customVerbs).forEach(v => {
+                    if (!settings.customVerbs.find(c => c.v1 === v.v1)) settings.customVerbs.push(v);
                 });
                 localStorage.setItem('verbTrainerSettings', JSON.stringify(settings));
                 renderCustomVerbsList();
@@ -3305,33 +3356,33 @@ function renderVerbOfDay() {
 
 // ================= ПРАКТИКА С ПРЕДЛОГАМИ =================
 const verbPrepositions = [
-    { v1: 'depend', preposition: 'on', translation: 'зависеть от' },
-    { v1: 'listen', preposition: 'to', translation: 'слушать' },
-    { v1: 'look', preposition: 'at', translation: 'смотреть на' },
-    { v1: 'look', preposition: 'for', translation: 'искать' },
-    { v1: 'look', preposition: 'after', translation: 'присматривать за' },
-    { v1: 'wait', preposition: 'for', translation: 'ждать' },
-    { v1: 'apologize', preposition: 'for', translation: 'извиняться за' },
-    { v1: 'belong', preposition: 'to', translation: 'принадлежать' },
-    { v1: 'believe', preposition: 'in', translation: 'верить в' },
-    { v1: 'consist', preposition: 'of', translation: 'состоять из' },
-    { v1: 'dream', preposition: 'about/of', translation: 'мечтать о' },
-    { v1: 'apply', preposition: 'for', translation: 'подавать на' },
-    { v1: 'argue', preposition: 'with', translation: 'спорить с' },
-    { v1: 'ask', preposition: 'for', translation: 'просить' },
-    { v1: 'care', preposition: 'about', translation: 'заботиться о' },
-    { v1: 'compare', preposition: 'with/to', translation: 'сравнивать с' },
-    { v1: 'concentrate', preposition: 'on', translation: 'сосредоточиться на' },
-    { v1: 'insist', preposition: 'on', translation: 'настаивать на' },
-    { v1: 'laugh', preposition: 'at', translation: 'смеяться над' },
-    { v1: 'pay', preposition: 'for', translation: 'платить за' },
-    { v1: 'point', preposition: 'at', translation: 'указывать на' },
-    { v1: 'refer', preposition: 'to', translation: 'ссылаться на' },
-    { v1: 'rely', preposition: 'on', translation: 'полагаться на' },
-    { v1: 'succeed', preposition: 'in', translation: 'преуспеть в' },
-    { v1: 'suffer', preposition: 'from', translation: 'страдать от' },
-    { v1: 'think', preposition: 'about/of', translation: 'думать о' },
-    { v1: 'worry', preposition: 'about', translation: 'беспокоиться о' }
+    { v1: 'depend', preposition: 'on', translation: 'зависеть от', gloss: 'to rely, be determined by' },
+    { v1: 'listen', preposition: 'to', translation: 'слушать', gloss: 'to pay attention to sound' },
+    { v1: 'look', preposition: 'at', translation: 'смотреть на', gloss: 'to direct your eyes toward' },
+    { v1: 'look', preposition: 'for', translation: 'искать', gloss: 'to search' },
+    { v1: 'look', preposition: 'after', translation: 'присматривать за', gloss: 'to take care of' },
+    { v1: 'wait', preposition: 'for', translation: 'ждать', gloss: 'to stay until something happens' },
+    { v1: 'apologize', preposition: 'for', translation: 'извиняться за', gloss: 'to say sorry' },
+    { v1: 'belong', preposition: 'to', translation: 'принадлежать', gloss: 'to be owned by' },
+    { v1: 'believe', preposition: 'in', translation: 'верить в', gloss: 'to trust the existence of' },
+    { v1: 'consist', preposition: 'of', translation: 'состоять из', gloss: 'to be made up of' },
+    { v1: 'dream', preposition: 'about/of', translation: 'мечтать о', gloss: 'to imagine in sleep or wish' },
+    { v1: 'apply', preposition: 'for', translation: 'подавать на', gloss: 'to request a job or place' },
+    { v1: 'argue', preposition: 'with', translation: 'спорить с', gloss: 'to quarrel' },
+    { v1: 'ask', preposition: 'for', translation: 'просить', gloss: 'to request' },
+    { v1: 'care', preposition: 'about', translation: 'заботиться о', gloss: 'to be concerned about' },
+    { v1: 'compare', preposition: 'with/to', translation: 'сравнивать с', gloss: 'to examine similarities' },
+    { v1: 'concentrate', preposition: 'on', translation: 'сосредоточиться на', gloss: 'to focus' },
+    { v1: 'insist', preposition: 'on', translation: 'настаивать на', gloss: 'to demand firmly' },
+    { v1: 'laugh', preposition: 'at', translation: 'смеяться над', gloss: 'to find funny' },
+    { v1: 'pay', preposition: 'for', translation: 'платить за', gloss: 'to give money for' },
+    { v1: 'point', preposition: 'at', translation: 'указывать на', gloss: 'to indicate with a finger' },
+    { v1: 'refer', preposition: 'to', translation: 'ссылаться на', gloss: 'to mention' },
+    { v1: 'rely', preposition: 'on', translation: 'полагаться на', gloss: 'to depend on' },
+    { v1: 'succeed', preposition: 'in', translation: 'преуспеть в', gloss: 'to achieve a goal' },
+    { v1: 'suffer', preposition: 'from', translation: 'страдать от', gloss: 'to experience pain or illness' },
+    { v1: 'think', preposition: 'about/of', translation: 'думать о', gloss: 'to have thoughts about' },
+    { v1: 'worry', preposition: 'about', translation: 'беспокоиться о', gloss: 'to feel anxious about' }
 ];
 
 let prepQueue = [];
@@ -3361,7 +3412,8 @@ function loadPrepQuestion() {
     }
     prepCurrentVerb = prepQueue[prepIdx];
     document.getElementById('prep-v1').textContent = prepCurrentVerb.v1;
-    document.getElementById('prep-translation').textContent = getVerbTranslation(prepCurrentVerb);
+    const prepLang = settings.lang || getSystemLang();
+    document.getElementById('prep-translation').textContent = prepLang === 'ru' ? prepCurrentVerb.translation : prepCurrentVerb.gloss;
     document.getElementById('prep-progress').textContent = (prepIdx + 1) + ' / ' + prepQueue.length;
 
     const input = document.getElementById('prep-input');
@@ -3396,7 +3448,7 @@ function checkPrepAnswer() {
         playSound('wrong');
         input.className = "w-full px-4 py-3 bg-red-50 border-2 border-red-500 rounded-lg text-red-700 font-bold text-lg";
         feedback.classList.add('bg-red-100', 'text-red-800');
-        feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + prepCurrentVerb.preposition + '</b>';
+        feedback.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> ' + __('trError') + ' <b>' + escapeHtml(prepCurrentVerb.preposition) + '</b>';
     }
 
     document.getElementById('btn-prep-check').classList.add('hidden');
@@ -4041,7 +4093,7 @@ function checkSpeedAnswer() {
         correct = getAcceptedVariations(correctAnswer).includes(answer);
     } else if (speedQuestionType === 2) {
         correctAnswer = speedCurrentVerb.v1;
-        correct = getAcceptedVariations(correctAnswer).includes(answer);
+        correct = matchesVerbByTranslation(answer, speedCurrentVerb);
     } else {
         correctAnswer = speedCurrentVerb.v1;
         correct = getAcceptedVariations(correctAnswer).includes(answer);
@@ -4065,7 +4117,7 @@ function checkSpeedAnswer() {
         const form = speedQuestionType === 0 ? 'v2' : speedQuestionType === 1 ? 'v3' : 'spelling';
         recordMistake(speedCurrentVerb, form);
         document.getElementById('speed-timer-display').textContent = speedRemaining;
-        feedback.innerHTML = '✗ ' + __('speedWrong') + ': <strong>' + correctAnswer + '</strong>';
+        feedback.innerHTML = '✗ ' + __('speedWrong') + ': <strong>' + escapeHtml(correctAnswer) + '</strong>';
         feedback.className = 'p-4 rounded-lg text-center font-bold text-lg bg-red-50 text-red-700';
         input.classList.remove('border-slate-300', 'border-green-500');
         input.classList.add('border-red-500');
@@ -4099,7 +4151,7 @@ function endSpeedRun() {
     document.getElementById('speed-results').classList.remove('hidden');
 
     document.getElementById('speed-result-score').textContent = speedScore;
-    document.getElementById('speed-result-correct').textContent = speedTotal;
+    document.getElementById('speed-result-correct').textContent = speedScore;
     const accuracy = speedTotal > 0 ? Math.round((speedScore / speedTotal) * 100) : 0;
     document.getElementById('speed-result-accuracy').textContent = accuracy + '%';
 
@@ -4245,11 +4297,6 @@ window.onload = () => {
     renderSpeedLeaderboard();
     const savedGroup = settings.verbGroup || 'all';
     if (savedGroup !== 'all') {
-        const dictBtn = document.getElementById(`dict-group-${savedGroup}`);
-        if (dictBtn) {
-            document.querySelectorAll('.dict-group-btn').forEach(b => b.className = "dict-group-btn px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-white text-slate-600 border border-slate-200 hover:bg-indigo-50");
-            dictBtn.className = "dict-group-btn px-3 py-1 rounded-full text-xs font-semibold transition-colors bg-indigo-600 text-white shadow-sm";
-        }
         ['let', 'tr', 'speed'].forEach(prefix => {
             const btn = document.getElementById(`${prefix}-group-${savedGroup}`);
             if (btn) {
